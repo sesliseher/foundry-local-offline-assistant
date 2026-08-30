@@ -1,0 +1,31 @@
+# Python sanal ortamları
+.venv/
+venv/
+
+# Yerel ayarlar ve gizli bilgiler (örnek ayarlar takip edilir)
+.env
+.env.*
+!.env.example
+
+# Python ve test önbellekleri
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Üretilen yerel SQLite veritabanları ve yardımcı dosyaları
+data/database/*.db
+data/database/*.db-*
+data/database/*.sqlite
+data/database/*.sqlite-*
+data/database/*.sqlite3
+data/database/*.sqlite3-*
+
+# Yerel günlükler
+*.log
+
+# Foundry Local katalog, model önbelleği ve çalışma dosyaları
+data/foundry/

@@ -1,0 +1,9 @@
+Örnek Kampüs Ders Kaydı
+
+Bu metin yalnızca proje denemesi için hazırlanmış kurgusal bilgiler içerir. Gerçek bir kurumun kurallarını temsil etmez.
+
+Ders kayıtları öğrenci bilgi sistemi üzerinden çevrimiçi yapılır. Öğrenci önce kullanıcı adı ve şifresiyle sisteme girer, ardından almak istediği dersleri seçer.
+
+Seçilen dersler akademik danışmanın onayına gönderilir. Danışman onayı tamamlanmadan kayıt kesinleşmez. Kontenjanı dolu bir ders için öğrenci bölüm sekreterliğine başvurabilir.
+
+Ekleme ve bırakma döneminde ders seçimleri değiştirilebilir. Değişikliklerin yeniden danışman tarafından onaylanması gerekir. Dönem tarihleri akademik takvimden kontrol edilmelidir.
