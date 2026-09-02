@@ -1,7 +1,5 @@
 Örnek Kampüs Yemekhanesi
 
-Bu metin yalnızca proje denemesi için hazırlanmış kurgusal bilgiler içerir. Gerçek bir kurumun kurallarını temsil etmez.
-
 Yemekhanede hafta içi saat 12.00 ile 14.00 arasında öğle yemeği sunulur. Öğrenciler girişte öğrenci kartlarını okutur. Hafta sonu yemek hizmeti verilmez.
 
 Günlük menüde çorba, ana yemek ve yardımcı yemek bulunur. Vejetaryen seçenek isteyen öğrenciler servis görevlisine başvurabilir. Alerjen bilgisi yemeklerin yanındaki bilgilendirme kartlarında yer alır.

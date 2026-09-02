@@ -14,14 +14,16 @@ internet bağlantısı olmadan çalışabilmesidir. Çevrimdışı çalışma he
 - Python 3.12 sanal ortamı ve `requirements.txt` bağımlılıkları hazırlandı.
 - Git dışlama kuralları eklendi.
 - Model listeleme betiği hazırlandı; katalog ve model önbelleği durumunu gösterir.
-- Uygulama ve değerlendirme dosyaları henüz boştur.
-- TXT belge okuma ve kaynak bilgili parçalama hazır; üç örnek belge 6 parçaya ayrıldı.
+- Streamlit kullanıcı arayüzü hazırdır; değerlendirme betiği henüz boştur.
+- TXT belge okuma ve kaynak bilgili parçalama hazır; üç örnek belge 3 parçaya ayrıldı.
 - Belge parçalarının embedding'leri SQLite'a kaydediliyor; tekrar kayıtta kopya oluşmuyor.
+- Soru embedding'i ile SQLite'taki en ilgili parçaları bulan arama komutu hazırlandı.
+- Yerel RAG komutu ilgili parçalarla kaynaklı cevap üretiyor; düşük skorda güvenli geri dönüş yapıyor.
 - Tek soruluk yerel model denemesi `scripts/hello_model.py` ile yapılabilir.
 - `qwen2.5-0.5b` CPU modeli indirildi ve ilk yerel Türkçe cevap başarıyla alındı.
 - Üç örnek cümle üzerinde embedding ve benzerlik sıralama betiği hazırlandı.
 - `qwen3-embedding-0.6b` indirildi; üç Türkçe soruda ilgili cümle ilk sırada bulundu.
-- Uçtan uca RAG akışı henüz uygulanmadı.
+- Uçtan uca RAG akışı hem komut satırında hem Streamlit arayüzünde çalışıyor.
 
 ## Planlanan çalışma akışı
 
@@ -35,7 +37,7 @@ internet bağlantısı olmadan çalışabilmesidir. Çevrimdışı çalışma he
 ## Klasör yapısı
 
 ```text
-app.py                       # Planlanan uygulama giriş noktası
+app.py                       # Streamlit sohbet arayüzü
 requirements.txt             # Sabitlenmiş Python bağımlılıkları
 .env.example                 # Örnek ayarlar için ayrılmış dosya; henüz boş
 src/offline_assistant/       # Uygulama modülleri
@@ -43,6 +45,8 @@ scripts/list_models.py       # Katalog ve indirilen modelleri listeler
 scripts/hello_model.py       # Yerel sohbet modeline tek soru gönderir
 scripts/embedding_demo.py    # Üç cümleyi soruya benzerliğine göre sıralar
 scripts/ingest_documents.py  # TXT önizleme; --save ile embedding ve SQLite kaydı
+scripts/search_documents.py  # SQLite indeksinde semantik arama yapar
+scripts/answer_documents.py  # Yerel modelle kaynaklı RAG cevabı üretir
 scripts/evaluate.py          # Değerlendirme betiği; henüz boş
 data/raw/                   # Yerel kaynak belgeler
 data/database/              # Üretilecek SQLite veritabanları
@@ -104,8 +108,8 @@ yolunu verebilirsin. Gösterilen indirme durumu yalnızca seçilen önbellek iç
 
 ## Sıradaki hedef
 
-Sorunun embedding'ini üretip SQLite'taki parçalardan en ilgili olanları bulmak.
-Sohbet modeliyle cevap üretme ve arayüz daha sonraki aşamalarda eklenecektir.
+Yanıtlanabilir ve yanıtsız sorulardan oluşan değerlendirme kümesini hazırlayıp
+arama ve cevap kalitesini ölçmek.
 
 ## İlk yerel model cevabı
 
@@ -252,7 +256,7 @@ veya kodlama hatası varsa komut başarısız çıkış kodu döndürür. UTF-8 
 eski Türkçe Windows dosyaları için gerektiğinde `--encoding cp1254` kullanılabilir.
 Kodlama hataları sessizce atlanmaz. PDF ve DOCX dosyaları henüz işlenmez.
 
-Doğrulama: varsayılan 600 karakter sınırında üç örnek belgeden 6 parça üretildi.
+Doğrulama: varsayılan 600 karakter sınırında üç örnek belgeden 3 parça üretildi.
 Belge okuma/parçalama ve önceki embedding yardımcıları dahil toplam 18 test geçti.
 
 ```powershell
@@ -308,9 +312,140 @@ Veritabanı kaynak metinlerin kopyalarını içerir ve şifreli değildir. Git d
 tutulur; özel belgeleri işlerken veritabanını da özel veri olarak koru.
 Bu aşama henüz soru araması veya sohbet cevabı üretmez.
 
-Doğrulama: üç örnek belgenin 6 parçası, 1024 boyutlu vektörlerle kaydedildi.
+Doğrulama: üç örnek belgenin 3 parçası, 1024 boyutlu vektörlerle kaydedildi.
 Aynı gerçek model akışı ikinci kez çalıştırıldı ve ayrı bir bağlantıyla
 veritabanı yeniden açıldığında yine 6 benzersiz kayıt bulundu. SQLite bütünlük
 kontrolü `ok` döndürdü. Kalıcılık, tekrar kayıt, eski parçaların kaldırılması,
 geçersiz vektörler, kaynak klasörü koruması ve SQL hatasında geri alma dahil
-toplam 26 test geçti.
+o aşamadaki toplam 26 test geçti. Arama katmanı eklendikten sonra bütün test
+paketi yeniden çalıştırıldı; Streamlit katmanı tamamlandığında toplam 52 test geçti.
+
+## SQLite indeksinde semantik arama
+
+`scripts/search_documents.py`, soruyu indekste kayıtlı **aynı tam model
+varyantıyla** embedding'e dönüştürür. SQLite'taki üç parçayı salt okunur olarak
+belleğe alır, kosinüs benzerliklerini hesaplar ve varsayılan olarak ilk üç sonucu
+kaynak dosyası, parça numarası, skor ve tam metinle gösterir.
+
+Proje kökünde:
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 scripts\search_documents.py "Kütüphane hafta içi saat kaçta kapanır?"
+```
+
+Sonuç sayısı ve veritabanı değiştirilebilir:
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 scripts\search_documents.py "Derslere nasıl kayıt olurum?" --top-k 2
+.\.venv\Scripts\python.exe -X utf8 scripts\search_documents.py "Öğle yemeği ne zaman?" --db data\database\assistant.db
+```
+
+Komut önce veritabanı metadata'sını ve bütün embedding'leri doğrular. Model
+alias'ının güncel sürümünü seçmek yerine indeks oluşturulurken kaydedilen tam
+varyant kimliğini kullanır; farklı boyut ve sürümlerin karışmasına izin vermez.
+Model önbellekte değilse otomatik indirme yapmaz ve açık bir hata verir.
+
+Bu küçük koleksiyonda bütün vektörleri Python ile karşılaştırmak yeterlidir.
+Kayıt sayısı büyüdüğünde özel bir vektör indeksi veya veritabanı uzantısı gerekir.
+`--top-k` kayıt sayısından büyükse var olan bütün parçalar birer kez döner.
+Eşit skorlarda kaynak adı ve parça numarası kararlı sıralama sağlar.
+
+**Sınır:** Kosinüs skoru doğruluk veya güven yüzdesi değildir. En ilgisiz soruda
+bile matematiksel olarak en yakın parçalar döner. Bu aşamada eşik belirlenmedi,
+“bilgi yok” kararı verilmez ve yerel sohbet modeli cevap üretmez. Sonuç metinleri
+veritabanından aynen gösterilir; örnek belgelerdeki bilgiler kurgusaldır.
+
+Doğrulanan ilk sorguda “Kütüphane hafta içi saat kaçta kapanır?” sorusu için
+`ornek_kutuphane.txt`, parça 1, 0,6333 skorla birinci sırada bulundu. Son RAG
+doğrulamasında sorgu embedding'i ve üç parçalık arama 3,30 saniye sürdü; SDK/model başlangıcı bu
+süreye dahil değildir. Bu tek sorgu genel arama kalitesini ölçmez.
+
+Arama katmanının testleri sonuç sıralamasını, eşit skorların kararlılığını,
+`top-k` sınırlarını, eksik veritabanını, geçersiz sorgu vektörlerini ve bozuk
+embedding kayıtlarının reddedilmesini kapsar.
+
+## Yerel RAG ile kaynaklı cevap üretme
+
+`scripts/answer_documents.py` bütün hattı çalıştırır: sorunun embedding'ini
+oluşturur, SQLite'tan en ilgili üç parçayı bulur, yeterli bağlam varsa bunları
+yerel `qwen2.5-0.5b` sohbet modeline verir ve cevabın yanında doğrulanmış kaynak
+listesini gösterir.
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 scripts\answer_documents.py "Kütüphane hafta içi saat kaçta kapanır?"
+```
+
+Varsayılanlar `--top-k 3`, `--min-score 0.35`, `--max-score-drop 0.15` ve
+`--max-tokens 256` şeklindedir.
+Sohbet modeli `--chat-model`, veritabanı `--db` ve önbellek
+`--model-cache-dir` ile değiştirilebilir. Her iki modelin önceden indirilmiş
+olması gerekir; komut otomatik model indirmez.
+
+Önce embedding modeli yüklenerek arama yapılır ve bu model bellekten çıkarılır.
+Ardından yalnızca yeterli bağlam varsa sohbet modeli yüklenir. Bu sıralama iki
+modelin aynı anda bellekte tutulmasını önler. Sohbet istemi yalnızca getirilen
+bağlama dayanmayı, tahmin etmemeyi ve `[K1]` biçiminde kaynak etiketi kullanmayı
+ister. Belge metinleri JSON içinde güvenilmeyen veri olarak sınırlandırılır ve
+belgelerin içindeki talimatların uygulanmaması açıkça belirtilir.
+
+Kaynak listesi model tarafından yazılmaz; uygulama doğrudan arama sonuçlarından
+üretir. Model cevap içinde kaynak etiketi vermez veya mevcut olmayan bir etiket
+kullanırsa komut görünür uyarı gösterir. Bu denetim cevabın her iddiasının
+gerçekten desteklendiğini kanıtlamaz; önemli cevaplar yine gözden geçirilmelidir.
+
+En iyi skor varsayılan 0,35 eşiğinin altındaysa sohbet modeli çağrılmaz ve
+“Bu bilgi mevcut belgelerde bulunamadı.” cevabı döner. Bu eşik küçük örnek veri
+üzerinde seçilmiş başlangıç sezgisidir; doğruluk olasılığı değildir. Kendi belge
+ve değerlendirme sorularınla ölçülüp ayarlanmalıdır. Eşiği düşürmek daha çok
+soruyu modele yollar ancak ilgisiz bağlamla cevap riskini artırır; yükseltmek
+daha fazla güvenli geri dönüş üretir. Ayrıca yalnızca en iyi sonuçtan en fazla
+0,15 düşük skorlu parçalar bağlama alınır. `--max-score-drop` büyütülürse çok
+belgeli sorular için daha fazla parça alınır, fakat ilgisiz bağlam riski artar.
+
+Doğrulamalar:
+
+- Kütüphane sorusunda doğru parça 0,6333 skorla bulundu; göreli filtre yalnızca
+  bu parçayı modele verdi ve yerel model saat bilgisini belgeden kullanarak cevap üretti.
+- İlgisiz Mars sorusuyla düşük skor durumunda güvenli geri dönüş ve sohbet
+  modelini çağırmama davranışı doğrulandı.
+- İstem oluşturma, belge içi talimatların veri olarak kaçışlanması, eşik sınırı,
+  kaynak listesi ve kaynak etiketi denetimi dahil testler eklendi.
+
+## Streamlit kullanıcı arayüzü
+
+Arayüzü proje kökünde başlat:
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 -m streamlit run app.py
+```
+
+Terminalde gösterilen yerel adresi tarayıcıda aç. Varsayılan adres genellikle
+`http://localhost:8501` olur. İlk soru sırasında SDK katalog başlangıcı nedeniyle
+ek bekleme olabilir; sonraki sorularda aynı Foundry yöneticisi Streamlit
+`cache_resource` içinde yeniden kullanılır.
+
+Ana ekranda sohbet alanı bulunur. Her cevap şu bilgileri gösterir:
+
+- Yerel model cevabı veya güvenli “bilgi bulunamadı” mesajı.
+- En iyi benzerlik skoru, arama süresi ve kullanıldıysa cevap üretme süresi.
+- Modelin kaynak etiketi davranışıyla ilgili görünür uyarılar.
+- Açılır bölümde uygulama tarafından doğrulanan kaynak, parça, skor ve tam metin.
+
+Kenar çubuğundan SQLite yolu, aranacak parça sayısı, minimum benzerlik,
+en iyi skordan izin verilen fark, cevap token sınırı ve sohbet modeli alias'ı
+değiştirilebilir. “Sohbet geçmişini temizle” yalnızca mevcut tarayıcı oturumundaki
+ekran geçmişini temizler; kaynak belgeleri, SQLite veritabanını veya modelleri
+silmez. Ayarlar değiştirildikten sonra yeni sorular yeni değerleri kullanır;
+eski cevaplar üretildikleri ayarlarla ekranda kalır.
+
+RAG servis mantığı `src/offline_assistant/service.py` içindedir; Streamlit'e bağlı
+değildir. Servis her soruda SQLite indeksini yeniden okur, böylece uygulama açıkken
+indeks yenilenirse sonraki soru yeni kayıtları kullanır. Paylaşılan yerel model
+çalışmalarını bir kilitle seri hale getirir ve embedding ile sohbet modellerini
+ardışık yükleyerek aynı anda bellekte tutmaz.
+
+Arayüzde yapılan gerçek kontrollerde kütüphane sorusu doğru kaynakla cevaplandı;
+Mars sorusu 0,1458 skorla eşik altında kaldı, güvenli mesaj gösterildi ve sohbet
+modeli çağrılmadı. Açılış ekranı Streamlit'in uygulama test aracıyla model
+yüklemeden doğrulandı; servis akışı sahte modeller ve geçici SQLite indeksiyle
+ayrıca test edildi.

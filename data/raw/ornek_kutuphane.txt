@@ -1,7 +1,5 @@
 Örnek Kampüs Kütüphanesi
 
-Bu metin yalnızca proje denemesi için hazırlanmış kurgusal bilgiler içerir. Gerçek bir kurumun kurallarını temsil etmez.
-
 Kütüphane hafta içi saat 09.00 ile 18.00 arasında açıktır. Cumartesi günleri saat 10.00 ile 14.00 arasında hizmet verir. Pazar günleri kapalıdır.
 
 Öğrenciler kimlik kartlarını göstererek aynı anda üç kitap ödünç alabilir. Ödünç alma süresi on dört gündür. Kitap başka bir okuyucu tarafından ayırtılmamışsa süre bir kez uzatılabilir.

@@ -1,32 +1,21 @@
 """Üç cümleyi yerel embedding modeliyle soruya benzerliğine göre sıralar."""
 
 import argparse
-import math
 from pathlib import Path
 import sys
 from time import perf_counter
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+from offline_assistant.retrieval import cosine_similarity
+
 DOCUMENTS = [
     "Kütüphane hafta içi sabah dokuzdan akşam altıya kadar açıktır.",
     "Öğrenciler yemekhanede öğle yemeği yiyebilir.",
     "Ders kayıtları öğrenci bilgi sistemi üzerinden çevrimiçi yapılır.",
 ]
-
-
-def cosine_similarity(left: list[float], right: list[float]) -> float:
-    """İki vektörün yön benzerliğini ölçer; sonuç bir olasılık değildir."""
-    if not left or len(left) != len(right):
-        raise ValueError("Vektörler boş olmamalı ve aynı boyutta olmalıdır.")
-    if not all(math.isfinite(value) for value in (*left, *right)):
-        raise ValueError("Vektörler yalnızca sonlu sayılar içermelidir.")
-    left_norm = math.sqrt(sum(value * value for value in left))
-    right_norm = math.sqrt(sum(value * value for value in right))
-    if not left_norm or not right_norm:
-        raise ValueError("Sıfır vektörü için kosinüs benzerliği tanımsızdır.")
-    dot = sum(a * b for a, b in zip(left, right))
-    return max(-1.0, min(1.0, dot / (left_norm * right_norm)))
 
 
 def ordered_vectors(response, expected_count: int) -> list[list[float]]:
