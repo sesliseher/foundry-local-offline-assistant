@@ -14,7 +14,7 @@ internet bağlantısı olmadan çalışabilmesidir. Çevrimdışı çalışma he
 - Python 3.12 sanal ortamı ve `requirements.txt` bağımlılıkları hazırlandı.
 - Git dışlama kuralları eklendi.
 - Model listeleme betiği hazırlandı; katalog ve model önbelleği durumunu gösterir.
-- Streamlit kullanıcı arayüzü hazırdır; değerlendirme betiği henüz boştur.
+- Streamlit kullanıcı arayüzü ve 18 soruluk tekrarlanabilir değerlendirme akışı hazırdır.
 - TXT belge okuma ve kaynak bilgili parçalama hazır; üç örnek belge 3 parçaya ayrıldı.
 - Belge parçalarının embedding'leri SQLite'a kaydediliyor; tekrar kayıtta kopya oluşmuyor.
 - Soru embedding'i ile SQLite'taki en ilgili parçaları bulan arama komutu hazırlandı.
@@ -47,7 +47,7 @@ scripts/embedding_demo.py    # Üç cümleyi soruya benzerliğine göre sıralar
 scripts/ingest_documents.py  # TXT önizleme; --save ile embedding ve SQLite kaydı
 scripts/search_documents.py  # SQLite indeksinde semantik arama yapar
 scripts/answer_documents.py  # Yerel modelle kaynaklı RAG cevabı üretir
-scripts/evaluate.py          # Değerlendirme betiği; henüz boş
+scripts/evaluate.py          # Retrieval ve isteğe bağlı cevap kalitesi değerlendirmesi
 data/raw/                   # Yerel kaynak belgeler
 data/database/              # Üretilecek SQLite veritabanları
 data/foundry/               # SDK çalışma dosyaları ve model önbelleği (Git dışında)
@@ -108,8 +108,50 @@ yolunu verebilirsin. Gösterilen indirme durumu yalnızca seçilen önbellek iç
 
 ## Sıradaki hedef
 
-Yanıtlanabilir ve yanıtsız sorulardan oluşan değerlendirme kümesini hazırlayıp
-arama ve cevap kalitesini ölçmek.
+Değerlendirmede görülen kapsam dışı soru kabulünü ve küçük sohbet modelinin düşük
+cevap/kaynak kalitesini iyileştirmek; ardından daha geniş ve gerçekçi bir belge
+kümesiyle ölçümü tekrarlamak.
+
+## RAG değerlendirmesi
+
+`evaluation/questions.json`, örnek belgelerden cevaplanabilen 12 soru ile bu
+belgelerde cevabı bulunmayan 6 soruyu içerir. Her cevaplanabilir kayıt beklenen
+kaynak dosyasını ve cevapta aranacak terim gruplarını belirtir. Veri kümesi Git'te
+tutulur; zaman damgalı JSON ve CSV raporları `evaluation/results/` altında üretilir
+ve Git'e eklenmez.
+
+Yalnız retrieval, eşik ve kapsam dışı soru davranışını ölçmek için:
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 scripts\evaluate.py
+```
+
+Yerel sohbet cevaplarını, beklenen terimleri ve kaynak etiketi kullanımını da
+ölçmek için:
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 scripts\evaluate.py --with-generation
+```
+
+`--cases`, `--db`, `--output-dir`, `--top-k`, `--min-score`,
+`--max-score-drop`, `--chat-model` ve `--max-tokens` seçenekleri kullanılabilir.
+Betik indeksin oluşturulduğu tam embedding modelini kullanır; modelleri otomatik
+indirmez. Ölçüm setinde hem cevaplanabilir hem yanıtsız soru olması gerekir.
+
+2 Eylül 2026 başlangıç ölçümünde doğru kaynak 12 sorunun tamamında ilk sırada
+bulundu (`hit@1`, `hit@3` ve MRR: 1,00). Varsayılan 0,35 eşikle 12 cevaplanabilir
+sorunun tamamı kabul edildi ve 6 kapsam dışı sorunun 5'i reddedildi; yönlendirme
+doğruluğu %94,44 oldu. “Kampüs servis otobüsünün güzergâhı” sorusu 0,3687 ile
+yanlış kabul edildi. En düşük geçerli soru 0,3644 aldığı için yalnız eşiği
+yükseltmek bu küçük sette iki sorunu birden çözmüyor.
+
+`qwen2.5-0.5b` ile tam akış ölçümünde cevapların ortalama beklenen terim kapsaması
+%36,11 oldu ve model 13 cevabın hiçbirinde istenen kaynak etiketini üretmedi.
+Bu sonuç retrieval katmanının örnek sette güçlü, küçük sohbet modelinin cevap ve
+kaynak uyumunun ise geliştirilmesi gerektiğini gösterir. Terim kapsaması basit
+metin eşleştirme ölçüsüdür; anlamsal doğruluğun insan değerlendirmesinin yerini
+tutmaz. Aynı makinedeki retrieval süresi ortalama 1,26 saniye, p95 1,88 saniyeydi;
+model/katalog ilk açılışı bu sürelere dahil değildir.
 
 ## İlk yerel model cevabı
 

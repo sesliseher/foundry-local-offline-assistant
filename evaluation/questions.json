@@ -1,0 +1,146 @@
+[
+  {
+    "id": "LIB-01",
+    "category": "library",
+    "question": "Kütüphane hafta içi saat kaçta kapanır?",
+    "answerable": true,
+    "expected_sources": ["ornek_kutuphane.txt"],
+    "expected_term_groups": [["18.00"]]
+  },
+  {
+    "id": "LIB-02",
+    "category": "library",
+    "question": "Kütüphane cumartesi günü hangi saatlerde açıktır?",
+    "answerable": true,
+    "expected_sources": ["ornek_kutuphane.txt"],
+    "expected_term_groups": [["10.00"], ["14.00"]]
+  },
+  {
+    "id": "LIB-03",
+    "category": "library",
+    "question": "Bir öğrenci aynı anda kaç kitap ödünç alabilir?",
+    "answerable": true,
+    "expected_sources": ["ornek_kutuphane.txt"],
+    "expected_term_groups": [["üç", "3"]]
+  },
+  {
+    "id": "LIB-04",
+    "category": "library",
+    "question": "Grup çalışma odası nasıl ayırtılır ve en fazla kaç saat kullanılabilir?",
+    "answerable": true,
+    "expected_sources": ["ornek_kutuphane.txt"],
+    "expected_term_groups": [["danışma masası"], ["bir gün", "1 gün"], ["iki saat", "2 saat"]]
+  },
+  {
+    "id": "CAF-01",
+    "category": "cafeteria",
+    "question": "Yemekhanede öğle yemeği hangi saatlerde verilir?",
+    "answerable": true,
+    "expected_sources": ["ornek_yemekhane.txt"],
+    "expected_term_groups": [["12.00"], ["14.00"]]
+  },
+  {
+    "id": "CAF-02",
+    "category": "cafeteria",
+    "question": "Hafta sonu yemek hizmeti var mı?",
+    "answerable": true,
+    "expected_sources": ["ornek_yemekhane.txt"],
+    "expected_term_groups": [["verilmez", "yok"]]
+  },
+  {
+    "id": "CAF-03",
+    "category": "cafeteria",
+    "question": "Vejetaryen yemek isteyen öğrenci ne yapmalıdır?",
+    "answerable": true,
+    "expected_sources": ["ornek_yemekhane.txt"],
+    "expected_term_groups": [["servis görevlisi"]]
+  },
+  {
+    "id": "CAF-04",
+    "category": "cafeteria",
+    "question": "Yemek kartına nasıl bakiye yüklenir?",
+    "answerable": true,
+    "expected_sources": ["ornek_yemekhane.txt"],
+    "expected_term_groups": [["öğrenci bilgi sistemi"], ["yemek işlemleri"]]
+  },
+  {
+    "id": "REG-01",
+    "category": "registration",
+    "question": "Ders kayıtları nereden ve nasıl yapılır?",
+    "answerable": true,
+    "expected_sources": ["ornek_ders_kaydi.txt"],
+    "expected_term_groups": [["öğrenci bilgi sistemi"], ["çevrimiçi"]]
+  },
+  {
+    "id": "REG-02",
+    "category": "registration",
+    "question": "Ders kaydının kesinleşmesi için kimin onayı gerekir?",
+    "answerable": true,
+    "expected_sources": ["ornek_ders_kaydi.txt"],
+    "expected_term_groups": [["danışman"], ["onay"]]
+  },
+  {
+    "id": "REG-03",
+    "category": "registration",
+    "question": "Kontenjanı dolu bir ders için nereye başvurulur?",
+    "answerable": true,
+    "expected_sources": ["ornek_ders_kaydi.txt"],
+    "expected_term_groups": [["bölüm sekreterliği"]]
+  },
+  {
+    "id": "REG-04",
+    "category": "registration",
+    "question": "Ekleme bırakma dönemindeki değişiklikleri yeniden kim onaylar?",
+    "answerable": true,
+    "expected_sources": ["ornek_ders_kaydi.txt"],
+    "expected_term_groups": [["danışman"]]
+  },
+  {
+    "id": "NONE-01",
+    "category": "unanswerable",
+    "question": "Öğrenim ücreti ne kadardır?",
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": []
+  },
+  {
+    "id": "NONE-02",
+    "category": "unanswerable",
+    "question": "Öğrenci yurtlarının aylık fiyatı nedir?",
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": []
+  },
+  {
+    "id": "NONE-03",
+    "category": "unanswerable",
+    "question": "Kampüs servis otobüsünün güzergâhı nedir?",
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": []
+  },
+  {
+    "id": "NONE-04",
+    "category": "unanswerable",
+    "question": "Spor salonunun üyelik ücreti ne kadar?",
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": []
+  },
+  {
+    "id": "NONE-05",
+    "category": "unanswerable",
+    "question": "Kampüsün kablosuz ağ şifresi nedir?",
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": []
+  },
+  {
+    "id": "NONE-06",
+    "category": "unanswerable",
+    "question": "Sağlık merkezinde hangi doktorlar çalışıyor?",
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": []
+  }
+]

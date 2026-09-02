@@ -29,3 +29,6 @@ data/database/*.sqlite3-*
 
 # Foundry Local katalog, model önbelleği ve çalışma dosyaları
 data/foundry/
+
+# Tekrar üretilebilen değerlendirme raporları (soru kümesi takip edilir)
+evaluation/results/
