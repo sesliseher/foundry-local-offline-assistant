@@ -48,6 +48,7 @@ scripts/ingest_documents.py  # TXT/PDF/DOCX önizleme, embedding ve SQLite kayd�
 scripts/search_documents.py  # SQLite indeksinde semantik arama yapar
 scripts/answer_documents.py  # Yerel modelle kaynaklı RAG cevabı üretir
 scripts/evaluate.py          # Retrieval ve isteğe bağlı cevap kalitesi değerlendirmesi
+scripts/health_check.py      # Ağ kullanmadan indeks ve model dosyalarını denetler
 data/raw/                   # Yerel kaynak belgeler
 data/database/              # Üretilecek SQLite veritabanları
 data/foundry/               # SDK çalışma dosyaları ve model önbelleği (Git dışında)
@@ -106,11 +107,40 @@ Başka bir uygulamada indirdiğin modeller otomatik olarak bu klasöre taşınma
 Mevcut model önbelleğini okumak için `--model-cache-dir` seçeneğine o klasörün
 yolunu verebilirsin. Gösterilen indirme durumu yalnızca seçilen önbellek içindir.
 
+## Yerel sağlık ve çevrimdışı çalışma
+
+İnternet bağlantısı kullanmadan SQLite indeksini, indeksin tam embedding modelini
+ve varsayılan sohbet modelinin dosyalarını kontrol et:
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 scripts\health_check.py
+```
+
+Komut her bileşeni `[OK]` veya `[HATA]` ile, indeks boyutlarını ve yerel model
+dosyalarının toplam boyutunu gösterir. `--db`, `--model-cache-dir` ve
+`--chat-model` seçenekleri vardır. SDK'yı başlatmadığı ve ağ kullanmadığı için
+model dosyalarının çalıştırılabilirliğini tek başına garanti etmez.
+
+3 Eylül 2026'da yeni bir süreçte HTTP/HTTPS çıkışı erişilemeyen yerel proxy'ye
+yönlendirilerek uçtan uca kontrol yapıldı. SDK yerel katalogdan başladı, sorgu
+embedding'i üretildi, beş parçalık indeks arandı ve `qwen2.5-1.5b` doğru DOCX
+kaynağıyla cevap verdi. Bu kontrol Windows ağ bağdaştırıcısını fiziksel olarak
+kapatmaz. Teslim öncesindeki son manuel doğrulama şöyledir:
+
+1. `health_check.py` çıktısındaki bütün bileşenlerin `[OK]` olduğunu doğrula.
+2. Wi-Fi/Ethernet bağlantısını kapat.
+3. Yeni PowerShell sürecinde Streamlit uygulamasını başlat.
+4. Cevaplanabilir ve kapsam dışı birer soru sor.
+5. Uygulamayı kapatıp yeniden başlatarak testi tekrarla.
+
+SDK 1.2.4 yapılandırmasında ayrı bir çevrimdışı anahtar bulunmadığı için başlangıç
+yerel katalog önbelleğine dayanır. İlk hazırlık ve eksik model indirme işlemleri
+internet gerektirir.
+
 ## Sıradaki hedef
 
-Küçük sohbet modelinin düşük cevap kalitesini daha güçlü bir yerel modelle
-karşılaştırmak; ardından daha geniş ve gerçekçi bir belge kümesiyle ölçümü
-tekrarlamak ve çevrimdışı soğuk başlangıcı doğrulamak.
+Streamlit arayüzüne indeks/model sağlık durumunu ve arayüzden indeks yenileme
+işlemini eklemek.
 
 ## RAG değerlendirmesi
 
