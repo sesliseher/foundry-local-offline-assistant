@@ -40,7 +40,8 @@ def save_index(
             raise ValueError("Embedding boyutları eşit, değerleri sonlu olmalıdır.")
         if not any(value != 0 for value in vector):
             raise ValueError("Sıfır embedding kaydedilemez.")
-        rows.append((chunk.source, chunk.chunk_number, chunk.text, json.dumps(vector, allow_nan=False)))
+        rows.append((chunk.source, chunk.chunk_number, chunk.text, json.dumps(vector, allow_nan=False),
+                     chunk.file_type, chunk.page_number))
 
     database = database.resolve()
     source_root = str(source_root.resolve())
@@ -64,15 +65,23 @@ def save_index(
                     chunk_number INTEGER NOT NULL,
                     text TEXT NOT NULL,
                     embedding_json TEXT NOT NULL,
+                    file_type TEXT NOT NULL DEFAULT 'txt',
+                    page_number INTEGER,
                     PRIMARY KEY (source, chunk_number)
                 )
             """)
+            columns = {row[1] for row in connection.execute("PRAGMA table_info(chunks)")}
+            if "file_type" not in columns:
+                connection.execute("ALTER TABLE chunks ADD COLUMN file_type TEXT NOT NULL DEFAULT 'txt'")
+            if "page_number" not in columns:
+                connection.execute("ALTER TABLE chunks ADD COLUMN page_number INTEGER")
             existing = connection.execute("SELECT source_root FROM index_metadata WHERE id = 1").fetchone()
             if existing and Path(existing[0]) != Path(source_root):
                 raise ValueError("Bu veritabanı başka bir kaynak klasörüne ait. Farklı --db yolu seçin.")
             connection.execute("DELETE FROM chunks")
             connection.executemany(
-                "INSERT INTO chunks (source, chunk_number, text, embedding_json) VALUES (?, ?, ?, ?)", rows
+                "INSERT INTO chunks (source, chunk_number, text, embedding_json, file_type, page_number) "
+                "VALUES (?, ?, ?, ?, ?, ?)", rows
             )
             connection.execute(
                 "INSERT OR REPLACE INTO index_metadata VALUES (1, ?, ?, ?, ?)",

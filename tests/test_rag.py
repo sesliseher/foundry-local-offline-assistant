@@ -81,8 +81,8 @@ def test_invalid_source_margin_is_rejected(margin):
 def test_source_lines_are_deterministic_and_model_independent():
     lines = source_lines([result(0.81234), SearchResult("ders.txt", 3, "x", 0.5)])
     assert lines == [
-        "[K1] kutuphane.txt, parça 2, skor 0.8123",
-        "[K2] ders.txt, parça 3, skor 0.5000",
+        "[K1] kutuphane.txt (TXT), parça 2, skor 0.8123",
+        "[K2] ders.txt (TXT), parça 3, skor 0.5000",
     ]
 
 

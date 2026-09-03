@@ -15,7 +15,7 @@ def source_score_margin(results: list[SearchResult]) -> float:
 
 
 def has_sufficient_context(
-    results: list[SearchResult], min_score: float, min_source_margin: float = 0.05
+    results: list[SearchResult], min_score: float, min_source_margin: float = 0.02
 ) -> bool:
     if not -1.0 <= min_score <= 1.0:
         raise ValueError("Minimum benzerlik skoru -1 ile 1 arasında olmalıdır.")
@@ -74,10 +74,14 @@ def ensure_citation(answer: str, result_count: int) -> tuple[str, bool]:
 
 def source_lines(results: list[SearchResult]) -> list[str]:
     """Modelden bağımsız, doğrulanmış kaynak listesini uygulama üretir."""
-    return [
-        f"[K{index}] {result.source}, parça {result.chunk_number}, skor {result.score:.4f}"
-        for index, result in enumerate(results, start=1)
-    ]
+    lines = []
+    for index, result in enumerate(results, start=1):
+        page = f", sayfa {result.page_number}" if result.page_number else ""
+        lines.append(
+            f"[K{index}] {result.source} ({result.file_type.upper()}){page}, "
+            f"parça {result.chunk_number}, skor {result.score:.4f}"
+        )
+    return lines
 
 
 def citation_warnings(answer: str, result_count: int) -> list[str]:

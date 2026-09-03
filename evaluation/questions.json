@@ -435,5 +435,38 @@
     "expected_sources": [],
     "expected_term_groups": [],
     "expected_answer": "Soru boş olamaz."
+  },
+  {
+    "id": "LAB-01",
+    "category": "laboratory",
+    "question_type": "answerable",
+    "question": "Bilgisayar laboratuvarı hafta içi hangi saatlerde açıktır?",
+    "valid_input": true,
+    "answerable": true,
+    "expected_sources": ["ornek_laboratuvar.docx"],
+    "expected_term_groups": [["08.30"], ["17.30"]],
+    "expected_answer": "Laboratuvar hafta içi 08.30–17.30 arasında açıktır."
+  },
+  {
+    "id": "LAB-02",
+    "category": "laboratory",
+    "question_type": "answerable",
+    "question": "Laboratuvardaki cihaz arızaları nereye bildirilmelidir?",
+    "valid_input": true,
+    "answerable": true,
+    "expected_sources": ["ornek_laboratuvar.docx"],
+    "expected_term_groups": [["teknik destek masası", "teknik destek masas"]],
+    "expected_answer": "Cihaz arızaları teknik destek masasına bildirilmelidir."
+  },
+  {
+    "id": "CLUB-01",
+    "category": "student_clubs",
+    "question_type": "answerable",
+    "question": "Öğrenci kulübü başvuruları nereye yapılır?",
+    "valid_input": true,
+    "answerable": true,
+    "expected_sources": ["ornek_kulupler.pdf"],
+    "expected_term_groups": [["öğrenci etkinlikleri ofisi", "ogrenci etkinlikleri ofisi"]],
+    "expected_answer": "Kulüp başvuruları öğrenci etkinlikleri ofisine yapılır."
   }
 ]

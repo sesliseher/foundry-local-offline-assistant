@@ -71,3 +71,11 @@ def test_other_source_root_cannot_overwrite_index(tmp_path):
     with pytest.raises(ValueError, match="başka bir kaynak"):
         save_index(database, tmp_path / "two", "model", 600, chunks, [[1]])
     assert read_rows(database) == before
+
+
+def test_file_type_and_page_number_are_stored(tmp_path):
+    database = tmp_path / "assistant.db"
+    chunk = Chunk("rehber.pdf", 1, "Sayfa metni", "pdf", 4)
+    save_index(database, tmp_path, "model", 600, [chunk], [[1]])
+    row = read_rows(database)[0]
+    assert row[4:] == ("pdf", 4)

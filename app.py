@@ -51,7 +51,7 @@ with st.sidebar:
     )
     top_k = st.slider("Aranacak parça sayısı", 1, 10, 3)
     min_score = st.slider("Minimum benzerlik", -1.0, 1.0, 0.35, 0.01)
-    min_source_margin = st.slider("Minimum kaynak farkı", 0.0, 1.0, 0.05, 0.01)
+    min_source_margin = st.slider("Minimum kaynak farkı", 0.0, 1.0, 0.02, 0.01)
     max_score_drop = st.slider("En iyi skordan izin verilen fark", 0.0, 1.0, 0.15, 0.01)
     max_tokens = st.slider("En fazla cevap tokenı", 32, 512, 256, 16)
     chat_model = st.text_input("Sohbet modeli", value="qwen2.5-1.5b")

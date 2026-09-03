@@ -54,7 +54,7 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, default=PROJECT_ROOT / "evaluation" / "results")
     parser.add_argument("--top-k", type=int, default=3)
     parser.add_argument("--min-score", type=float, default=0.35)
-    parser.add_argument("--min-source-margin", type=float, default=0.05)
+    parser.add_argument("--min-source-margin", type=float, default=0.02)
     parser.add_argument("--max-score-drop", type=float, default=0.15)
     parser.add_argument("--with-generation", action="store_true", help="Yerel sohbet cevabını da değerlendir.")
     parser.add_argument("--chat-model", default="qwen2.5-1.5b")

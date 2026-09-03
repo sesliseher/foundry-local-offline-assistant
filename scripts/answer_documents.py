@@ -25,8 +25,8 @@ def main() -> int:
         help="Sohbet modelini çağırmak için gereken en iyi skor; varsayılan 0.35.",
     )
     parser.add_argument(
-        "--min-source-margin", type=float, default=0.05,
-        help="En iyi kaynak ile rakip kaynak arasında gereken fark; varsayılan 0.05.",
+        "--min-source-margin", type=float, default=0.02,
+        help="En iyi kaynak ile rakip kaynak arasında gereken fark; varsayılan 0.02.",
     )
     parser.add_argument(
         "--max-score-drop", type=float, default=0.15,

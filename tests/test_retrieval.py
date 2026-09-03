@@ -60,3 +60,11 @@ def test_corrupt_embedding_is_rejected(tmp_path):
         connection.commit()
     with pytest.raises(ValueError, match="beklenen boyut 2"):
         load_index(database)
+
+
+def test_retrieval_preserves_file_metadata(tmp_path):
+    database = tmp_path / "assistant.db"
+    save_index(database, tmp_path, "model", 600, [Chunk("rehber.pdf", 1, "Metin", "pdf", 2)], [[1]])
+    metadata, chunks = load_index(database)
+    result = search_chunks([1], chunks, metadata.dimension, 1)[0]
+    assert (result.file_type, result.page_number) == ("pdf", 2)

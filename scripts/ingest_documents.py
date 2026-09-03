@@ -1,4 +1,4 @@
-"""TXT parçalarını önizler; --save ile embedding üretip SQLite'a kaydeder."""
+"""TXT/PDF/DOCX belgelerini önizler; --save ile yerel indeksi yeniler."""
 
 import argparse
 from pathlib import Path
@@ -9,7 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # Proje henüz paket olarak kurulmadığı için src dizinini import yoluna ekliyoruz.
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from offline_assistant.documents import read_txt_documents, split_document
+from offline_assistant.documents import read_documents, split_documents
 from offline_assistant.storage import save_index
 
 
@@ -68,28 +68,30 @@ def main() -> int:
     if args.max_chars < 1:
         parser.error("--max-chars sıfırdan büyük olmalıdır.")
     try:
-        documents = read_txt_documents(args.input_dir, args.encoding)
+        documents = read_documents(args.input_dir, args.encoding)
     except (ValueError, OSError, LookupError) as exc:
         print(f"Belgeler okunamadı: {exc}", file=sys.stderr)
         return 1
     if not documents:
-        print(f"TXT belgesi bulunamadı: {args.input_dir.resolve()}", file=sys.stderr)
+        print(f"Desteklenen belge bulunamadı: {args.input_dir.resolve()}", file=sys.stderr)
         return 1
 
     total_chunks = 0
     all_chunks = []
     empty_documents = 0
+    chunks_by_document = split_documents(documents, args.max_chars)
     for document in documents:
-        chunks = split_document(document, args.max_chars)
+        chunks = [c for c in chunks_by_document if c.source == document.source and c.page_number == document.page_number]
         if not chunks:
             empty_documents += 1
             print(f"Uyarı: Boş belge atlandı: {document.source}", file=sys.stderr)
         for chunk in chunks:
-            print(f"\nKaynak: {chunk.source} | Parça: {chunk.chunk_number} | Karakter: {len(chunk.text)}")
+            page = f" | Sayfa: {chunk.page_number}" if chunk.page_number else ""
+            print(f"\nKaynak: {chunk.source} | Tür: {chunk.file_type.upper()}{page} | Parça: {chunk.chunk_number} | Karakter: {len(chunk.text)}")
             print(chunk.text)
         total_chunks += len(chunks)
         all_chunks.extend(chunks)
-    print(f"\nToplam: {len(documents)} TXT belge, {total_chunks} parça, {empty_documents} boş belge.")
+    print(f"\nToplam: {len({d.source for d in documents})} belge, {total_chunks} parça, {empty_documents} boş sayfa/belge.")
     if not total_chunks:
         print("Kaydedilecek parça yok; varsa mevcut veritabanı korunur.", file=sys.stderr)
         return 1

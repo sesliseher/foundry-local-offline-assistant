@@ -50,7 +50,7 @@ class LocalRAGService:
         database: Path,
         top_k: int = 3,
         min_score: float = 0.35,
-        min_source_margin: float = 0.05,
+        min_source_margin: float = 0.02,
         max_score_drop: float = 0.15,
         chat_model_alias: str = "qwen2.5-1.5b",
         max_tokens: int = 256,

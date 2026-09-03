@@ -14,8 +14,8 @@ internet bağlantısı olmadan çalışabilmesidir. Çevrimdışı çalışma he
 - Python 3.12 sanal ortamı ve `requirements.txt` bağımlılıkları hazırlandı.
 - Git dışlama kuralları eklendi.
 - Model listeleme betiği hazırlandı; katalog ve model önbelleği durumunu gösterir.
-- Streamlit kullanıcı arayüzü ve 27 vakalık tekrarlanabilir değerlendirme akışı hazırdır.
-- TXT belge okuma ve kaynak bilgili parçalama hazır; üç örnek belge 3 parçaya ayrıldı.
+- Streamlit kullanıcı arayüzü ve 30 vakalık tekrarlanabilir değerlendirme akışı hazırdır.
+- TXT, metin tabanlı PDF ve DOCX okuma ile kaynak bilgili parçalama hazırdır.
 - Belge parçalarının embedding'leri SQLite'a kaydediliyor; tekrar kayıtta kopya oluşmuyor.
 - Soru embedding'i ile SQLite'taki en ilgili parçaları bulan arama komutu hazırlandı.
 - Yerel RAG komutu ilgili parçalarla kaynaklı cevap üretiyor; düşük skorda güvenli geri dönüş yapıyor.
@@ -44,7 +44,7 @@ src/offline_assistant/       # Uygulama modülleri
 scripts/list_models.py       # Katalog ve indirilen modelleri listeler
 scripts/hello_model.py       # Yerel sohbet modeline tek soru gönderir
 scripts/embedding_demo.py    # Üç cümleyi soruya benzerliğine göre sıralar
-scripts/ingest_documents.py  # TXT önizleme; --save ile embedding ve SQLite kaydı
+scripts/ingest_documents.py  # TXT/PDF/DOCX önizleme, embedding ve SQLite kaydı
 scripts/search_documents.py  # SQLite indeksinde semantik arama yapar
 scripts/answer_documents.py  # Yerel modelle kaynaklı RAG cevabı üretir
 scripts/evaluate.py          # Retrieval ve isteğe bağlı cevap kalitesi değerlendirmesi
@@ -114,7 +114,7 @@ tekrarlamak ve çevrimdışı soğuk başlangıcı doğrulamak.
 
 ## RAG değerlendirmesi
 
-`evaluation/questions.json`; 15 cevaplanabilir, 9 yanıtsız veya belirsiz ve 3
+`evaluation/questions.json`; 18 cevaplanabilir, 9 yanıtsız veya belirsiz ve 3
 boş/geçersiz giriş vakası içerir. Üç cevaplanabilir soru birden fazla bilginin
 birleştirilmesini gerektirir. Her kayıt soru türünü ve örnek cevabı; cevaplanabilir
 kayıtlar ayrıca beklenen kaynak ile cevap terimlerini belirtir. Veri kümesi Git'te
@@ -143,12 +143,14 @@ indirmez. Ölçüm setinde hem cevaplanabilir hem yanıtsız soru olması gereki
 2 Eylül 2026 başlangıç ölçümünde doğru kaynak 12 sorunun tamamında ilk sırada
 bulundu (`hit@1`, `hit@3` ve MRR: 1,00), ancak 6 kapsam dışı sorunun biri yanlış
 kabul edildi. 3 Eylül'de en iyi sonuç ile farklı bir kaynaktaki en iyi sonuç
-arasına varsayılan 0,05 güven farkı eklendi. Sonraki ölçümde 12 cevaplanabilir
+arasına bir güven farkı eklendi. Beş belgeli koleksiyon ölçümünden sonra varsayılan
+fark 0,02 olarak ayarlandı. İlk iyileştirmede 12 cevaplanabilir
 sorunun tamamı kabul edildi, 6 kapsam dışı sorunun tamamı reddedildi ve
 yönlendirme doğruluğu %100 oldu. Küme 27 vakaya genişletildikten sonra 15/15
 cevaplanabilir soru kabul edildi, 9/9 yanıtsız veya belirsiz soru ile 3/3 geçersiz
-giriş reddedildi; doğru kaynak yine 15/15 soruda ilk sıradaydı. Bu sonuç yalnız
-küçük örnek veri kümesine aittir.
+giriş reddedildi. Beş belge ve 30 vakalık son kümede doğru kaynak bütün
+cevaplanabilir sorularda ilk üç sonuç içindedir. Bu sonuç yalnız güvenli örnek
+veri kümesine aittir.
 
 `qwen2.5-0.5b` ile en iyi tam akış denemesinde cevapların ortalama beklenen terim
 kapsaması %41,67 oldu. `qwen2.5-1.5b` ile 27 vakalık karşılaştırmada 15
@@ -265,10 +267,12 @@ Bunlar üç örnek üzerindeki sonuçlardır; genel arama kalitesini ölçmez ve
 bir benzerlik eşiği belirlemek için yeterli değildir. Süreye indirme, SDK
 başlangıcı, model yükleme ve soru embedding'leri dahil değildir.
 
-## TXT belgelerini okuma ve parçalama
+## TXT, PDF ve DOCX belgelerini okuma ve parçalama
 
-`src/offline_assistant/documents.py`, TXT dosyalarını okur ve `source`,
-`chunk_number`, `text` alanlarını taşıyan parçalar oluşturur.
+`src/offline_assistant/documents.py`, TXT, metin tabanlı PDF ve DOCX dosyalarını
+okur; `source`, `file_type`, `page_number`, `chunk_number` ve `text` alanlarını
+taşıyan parçalar oluşturur. PDF sayfa numarası korunur. DOCX biçimi sabit sayfa
+numarası taşımadığı için DOCX parçalarında sayfa numarası gösterilmez.
 `scripts/ingest_documents.py` varsayılan olarak bu parçaları terminalde önizler.
 Önizleme modunda model, internet veya veritabanı kullanılmaz; kaynak dosyalar
 değiştirilmez. Embedding ve SQLite kaydı için aşağıdaki `--save` modu kullanılır.
@@ -306,7 +310,10 @@ boyutu değiştiğinde parça numaraları da değişebilir; bunlar kalıcı kiml
 Boş belgeler uyarıyla atlanır. Klasör bulunamazsa, TXT yoksa, tüm belgeler boşsa
 veya kodlama hatası varsa komut başarısız çıkış kodu döndürür. UTF-8 BOM desteklenir;
 eski Türkçe Windows dosyaları için gerektiğinde `--encoding cp1254` kullanılabilir.
-Kodlama hataları sessizce atlanmaz. PDF ve DOCX dosyaları henüz işlenmez.
+Kodlama hataları sessizce atlanmaz. PDF metin çıkarımı `pypdf`, DOCX okuma
+`python-docx` ile yapılır. Görüntü olarak taranmış PDF sayfalarında OCR uygulanmaz;
+metin çıkarılamayan sayfa boş sayfa olarak uyarıyla atlanır. Bozuk veya şifreli
+belgeler kaynak adıyla birlikte anlaşılır bir hata üretir.
 
 Doğrulama: varsayılan 600 karakter sınırında üç örnek belgeden 3 parça üretildi.
 Belge okuma/parçalama ve önceki embedding yardımcıları dahil toplam 18 test geçti.
@@ -323,7 +330,7 @@ Mevcut embedding modeli indirilmiş olduğundan doğrudan çalıştırabilirsin:
 .\.venv\Scripts\python.exe -X utf8 scripts\ingest_documents.py --save
 ```
 
-Betik TXT belgelerini okur, parçalarına ayırır, yerel embedding modelini yükler
+Betik desteklenen belgeleri okur, parçalarına ayırır, yerel embedding modelini yükler
 ve en fazla sekiz parçalık gruplarla vektör üretir. Tüm vektörler başarıyla
 üretildikten ve doğrulandıktan sonra `data/database/assistant.db` dosyasına
 tek bir SQLite transaction'ı ile kaydeder. Model dosyaları yeniden indirilmez.
@@ -334,7 +341,7 @@ SDK katalog erişimi internet gerektirebilir. Yeni kurulumda önce
 
 | Tablo | Saklanan bilgiler |
 | --- | --- |
-| `chunks` | Kaynak yolu, parça numarası, parça metni, JSON biçiminde embedding |
+| `chunks` | Kaynak yolu/türü, PDF sayfası, parça numarası, metin ve JSON embedding |
 | `index_metadata` | Kaynak klasörü, tam model varyantı/sürümü, vektör boyutu, parça boyutu sınırı |
 
 Model bilgisi bütün indeks için ortaktır. `(source, chunk_number)` birincil
@@ -427,7 +434,7 @@ listesini gösterir.
 .\.venv\Scripts\python.exe -X utf8 scripts\answer_documents.py "Kütüphane hafta içi saat kaçta kapanır?"
 ```
 
-Varsayılanlar `--top-k 3`, `--min-score 0.35`, `--min-source-margin 0.05`,
+Varsayılanlar `--top-k 3`, `--min-score 0.35`, `--min-source-margin 0.02`,
 `--max-score-drop 0.15` ve `--max-tokens 256` şeklindedir.
 Sohbet modeli `--chat-model`, veritabanı `--db` ve önbellek
 `--model-cache-dir` ile değiştirilebilir. Her iki modelin önceden indirilmiş
@@ -446,7 +453,7 @@ kullanırsa komut görünür uyarı gösterir. Bu denetim cevabın her iddiasın
 gerçekten desteklendiğini kanıtlamaz; önemli cevaplar yine gözden geçirilmelidir.
 
 En iyi skor varsayılan 0,35 eşiğinin altındaysa veya farklı bir kaynakla skor
-farkı varsayılan 0,05'in altındaysa sohbet modeli çağrılmaz ve
+farkı varsayılan 0,02'nin altındaysa sohbet modeli çağrılmaz ve
 “Bu bilgi mevcut belgelerde bulunamadı.” cevabı döner. Bu eşik küçük örnek veri
 üzerinde seçilmiş başlangıç sezgisidir; doğruluk olasılığı değildir. Kendi belge
 ve değerlendirme sorularınla ölçülüp ayarlanmalıdır. Eşiği düşürmek daha çok

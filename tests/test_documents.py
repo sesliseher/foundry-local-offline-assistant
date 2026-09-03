@@ -2,7 +2,11 @@
 
 import pytest
 
-from src.offline_assistant.documents import Document, read_txt_documents, split_document
+from docx import Document as WordDocument
+
+from src.offline_assistant.documents import (
+    Document, read_documents, read_txt_documents, split_document, split_documents,
+)
 
 
 def test_paragraphs_and_source_numbers_are_preserved():
@@ -64,3 +68,26 @@ def test_invalid_encoding_does_not_silently_drop_characters(tmp_path):
 def test_missing_directory_is_an_error(tmp_path):
     with pytest.raises(ValueError, match="klasörü bulunamadı"):
         read_txt_documents(tmp_path / "missing")
+
+
+def test_docx_reader_preserves_type_and_text(tmp_path):
+    word = WordDocument()
+    word.add_paragraph("Başlık")
+    word.add_paragraph("Türkçe DOCX içeriği")
+    word.save(tmp_path / "bilgi.docx")
+
+    documents = read_documents(tmp_path)
+
+    assert [(doc.source, doc.file_type) for doc in documents] == [("bilgi.docx", "docx")]
+    assert documents[0].text == "Başlık\n\nTürkçe DOCX içeriği"
+
+
+def test_split_documents_numbers_pdf_pages_without_collisions():
+    documents = [
+        Document("rehber.pdf", "Birinci sayfa", "pdf", 1),
+        Document("rehber.pdf", "İkinci sayfa", "pdf", 2),
+    ]
+    chunks = split_documents(documents, 600)
+    assert [(c.chunk_number, c.page_number, c.file_type) for c in chunks] == [
+        (1, 1, "pdf"), (2, 2, "pdf")
+    ]
