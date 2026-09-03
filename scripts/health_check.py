@@ -8,13 +8,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from offline_assistant.health import check_local_health
+from offline_assistant.config import Settings
 
 
 def main() -> int:
+    settings = Settings.load(PROJECT_ROOT)
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--db", type=Path, default=PROJECT_ROOT / "data/database/assistant.db")
-    parser.add_argument("--model-cache-dir", type=Path, default=PROJECT_ROOT / "data/foundry/cache/models")
-    parser.add_argument("--chat-model", default="qwen2.5-1.5b")
+    parser.add_argument("--db", type=Path, default=settings.database)
+    parser.add_argument("--model-cache-dir", type=Path, default=settings.model_cache_dir)
+    parser.add_argument("--chat-model", default=settings.chat_model)
     args = parser.parse_args()
     items = check_local_health(args.db, args.model_cache_dir, args.chat_model)
     for item in items:

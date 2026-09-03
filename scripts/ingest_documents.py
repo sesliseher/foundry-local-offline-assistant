@@ -11,13 +11,14 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from offline_assistant.documents import read_documents, split_documents
 from offline_assistant.storage import save_index
+from offline_assistant.config import Settings
 
 
 def embed_and_save(chunks, args) -> int:
     # Önizleme çalışırken SDK yüklenmez ve ağ bağlantısı kurulmaz.
     from foundry_local_sdk import Configuration, FoundryLocalManager
 
-    app_data = PROJECT_ROOT / "data" / "foundry"
+    app_data = args.app_data_dir
     cache = args.model_cache_dir.expanduser().resolve() if args.model_cache_dir else app_data / "cache" / "models"
     print("SDK başlatılıyor; katalog sorgusu internet gerektirebilir.", flush=True)
     FoundryLocalManager.initialize(Configuration(
@@ -56,14 +57,16 @@ def embed_and_save(chunks, args) -> int:
 
 
 def main() -> int:
+    settings = Settings.load(PROJECT_ROOT)
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input-dir", type=Path, default=PROJECT_ROOT / "data" / "raw")
-    parser.add_argument("--max-chars", type=int, default=600, help="Parça başına en fazla karakter.")
+    parser.add_argument("--input-dir", type=Path, default=settings.source_dir)
+    parser.add_argument("--max-chars", type=int, default=settings.max_chars, help="Parça başına en fazla karakter.")
     parser.add_argument("--encoding", default="utf-8-sig", help="TXT kodlaması; varsayılan UTF-8/BOM.")
     parser.add_argument("--save", action="store_true", help="Embedding üretip mevcut indeksi atomik yenile.")
-    parser.add_argument("--db", type=Path, default=PROJECT_ROOT / "data" / "database" / "assistant.db")
-    parser.add_argument("--model", default="qwen3-embedding-0.6b")
-    parser.add_argument("--model-cache-dir", type=Path)
+    parser.add_argument("--db", type=Path, default=settings.database)
+    parser.add_argument("--model", default=settings.embedding_model)
+    parser.add_argument("--model-cache-dir", type=Path, default=settings.model_cache_dir)
+    parser.add_argument("--app-data-dir", type=Path, default=settings.app_data_dir, help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.max_chars < 1:
         parser.error("--max-chars sıfırdan büyük olmalıdır.")

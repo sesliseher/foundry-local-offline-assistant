@@ -10,6 +10,10 @@ from .rag import (
     select_context, source_lines, source_score_margin,
 )
 from .retrieval import SearchResult, load_index, search_chunks
+from .config import (
+    DEFAULT_CHAT_MODEL, DEFAULT_MAX_SCORE_DROP, DEFAULT_MAX_TOKENS,
+    DEFAULT_MIN_SCORE, DEFAULT_MIN_SOURCE_MARGIN, DEFAULT_TOP_K,
+)
 
 
 @dataclass(frozen=True)
@@ -48,12 +52,12 @@ class LocalRAGService:
         self,
         question: str,
         database: Path,
-        top_k: int = 3,
-        min_score: float = 0.35,
-        min_source_margin: float = 0.02,
-        max_score_drop: float = 0.15,
-        chat_model_alias: str = "qwen2.5-1.5b",
-        max_tokens: int = 256,
+        top_k: int = DEFAULT_TOP_K,
+        min_score: float = DEFAULT_MIN_SCORE,
+        min_source_margin: float = DEFAULT_MIN_SOURCE_MARGIN,
+        max_score_drop: float = DEFAULT_MAX_SCORE_DROP,
+        chat_model_alias: str = DEFAULT_CHAT_MODEL,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
     ) -> AnswerResult:
         question = question.strip()
         if not question:

@@ -13,6 +13,9 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 from offline_assistant.service import AnswerResult, LocalRAGService
 from offline_assistant.health import check_local_health
 from offline_assistant.indexing import run_ingestion
+from offline_assistant.config import Settings
+
+SETTINGS = Settings.load(PROJECT_ROOT)
 
 
 st.set_page_config(page_title="Yerel Belge Asistanı", page_icon="📚", layout="centered")
@@ -50,15 +53,14 @@ st.caption("Örnek belgeler kurgusaldır. Model cevaplarını önemli kararlar i
 with st.sidebar:
     st.header("Ayarlar")
     database_text = st.text_input(
-        "SQLite indeksi", value=str(PROJECT_ROOT / "data" / "database" / "assistant.db")
+        "SQLite indeksi", value=str(SETTINGS.database)
     )
-    source_dir_text = st.text_input("Kaynak belge klasörü", value=str(PROJECT_ROOT / "data" / "raw"))
-    max_chars = st.slider("Parça boyutu (karakter)", 200, 1200, 600, 50)
+    source_dir_text = st.text_input("Kaynak belge klasörü", value=str(SETTINGS.source_dir))
+    max_chars = st.slider("Parça boyutu (karakter)", 200, 1200, SETTINGS.max_chars, 50)
 
     st.subheader("Sistem durumu")
     health_items = check_local_health(
-        Path(database_text), PROJECT_ROOT / "data" / "foundry" / "cache" / "models",
-        "qwen2.5-1.5b",
+        Path(database_text), SETTINGS.model_cache_dir, SETTINGS.chat_model,
     )
     for health_item in health_items:
         icon = "✅" if health_item.ok else "❌"
@@ -95,12 +97,12 @@ with st.sidebar:
     if notice := st.session_state.pop("index_notice", None):
         st.success(notice)
     st.divider()
-    top_k = st.slider("Aranacak parça sayısı", 1, 10, 3)
-    min_score = st.slider("Minimum benzerlik", -1.0, 1.0, 0.35, 0.01)
-    min_source_margin = st.slider("Minimum kaynak farkı", 0.0, 1.0, 0.02, 0.01)
-    max_score_drop = st.slider("En iyi skordan izin verilen fark", 0.0, 1.0, 0.15, 0.01)
-    max_tokens = st.slider("En fazla cevap tokenı", 32, 512, 256, 16)
-    chat_model = st.text_input("Sohbet modeli", value="qwen2.5-1.5b")
+    top_k = st.slider("Aranacak parça sayısı", 1, 10, SETTINGS.top_k)
+    min_score = st.slider("Minimum benzerlik", -1.0, 1.0, SETTINGS.min_score, 0.01)
+    min_source_margin = st.slider("Minimum kaynak farkı", 0.0, 1.0, SETTINGS.min_source_margin, 0.01)
+    max_score_drop = st.slider("En iyi skordan izin verilen fark", 0.0, 1.0, SETTINGS.max_score_drop, 0.01)
+    max_tokens = st.slider("En fazla cevap tokenı", 32, 512, SETTINGS.max_tokens, 16)
+    chat_model = st.text_input("Sohbet modeli", value=SETTINGS.chat_model)
     if st.button("Sohbet geçmişini temizle", use_container_width=True):
         st.session_state.messages = []
         st.rerun()

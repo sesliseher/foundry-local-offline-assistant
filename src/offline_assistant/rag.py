@@ -3,6 +3,7 @@
 import re
 
 from .retrieval import SearchResult
+from .config import DEFAULT_MAX_SCORE_DROP, DEFAULT_MIN_SOURCE_MARGIN
 
 
 FALLBACK_ANSWER = "Bu bilgi mevcut belgelerde bulunamadı."
@@ -15,7 +16,7 @@ def source_score_margin(results: list[SearchResult]) -> float:
 
 
 def has_sufficient_context(
-    results: list[SearchResult], min_score: float, min_source_margin: float = 0.02
+    results: list[SearchResult], min_score: float, min_source_margin: float = DEFAULT_MIN_SOURCE_MARGIN
 ) -> bool:
     if not -1.0 <= min_score <= 1.0:
         raise ValueError("Minimum benzerlik skoru -1 ile 1 arasında olmalıdır.")
@@ -29,7 +30,7 @@ def has_sufficient_context(
 
 
 def select_context(
-    results: list[SearchResult], min_score: float, max_score_drop: float = 0.15
+    results: list[SearchResult], min_score: float, max_score_drop: float = DEFAULT_MAX_SCORE_DROP
 ) -> list[SearchResult]:
     """Mutlak eşik ve en iyi skora göre göreli farkla bağlam seçer."""
     if not -1.0 <= min_score <= 1.0:

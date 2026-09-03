@@ -39,7 +39,7 @@ internet bağlantısı olmadan çalışabilmesidir. Çevrimdışı çalışma he
 ```text
 app.py                       # Streamlit sohbet arayüzü
 requirements.txt             # Sabitlenmiş Python bağımlılıkları
-.env.example                 # Örnek ayarlar için ayrılmış dosya; henüz boş
+.env.example                 # Paylaşılabilir yerel yapılandırma şablonu
 src/offline_assistant/       # Uygulama modülleri
 scripts/list_models.py       # Katalog ve indirilen modelleri listeler
 scripts/hello_model.py       # Yerel sohbet modeline tek soru gönderir
@@ -81,6 +81,19 @@ Sanal ortam, `.env` ayarları, Python/test önbellekleri, günlükler ve
 `data/database/` içindeki SQLite dosyaları Git dışında tutulur.
 `.env.example` paylaşılabilir ayar şablonu olarak takip edilir; gerçek sırlar
 bu dosyaya yazılmamalıdır.
+
+## Yapılandırma
+
+Uygulamanın ortak varsayılanları `src/offline_assistant/config.py` içindedir.
+Yerel ayarları değiştirmek için `.env.example` dosyasını `.env` adıyla kopyalayıp
+değerleri düzenle. `.env` Git'e eklenmez; `.env.example` yalnız güvenli örnek
+değerler içerir.
+
+Desteklenen ayarlar kaynak/SQLite/Foundry/model önbelleği yolları, sohbet ve
+embedding model alias'ları, `top_k`, minimum skor, kaynak farkı, göreli skor
+farkı, parça boyutu ve cevap token sınırıdır. Göreli yollar proje köküne göre
+çözülür. Komut satırında açıkça verilen seçenekler `.env` değerlerinin önüne
+geçer. Geçersiz sayı aralıkları ve boş model adları başlangıçta reddedilir.
 
 `data/raw/` otomatik olarak dışlanmaz. Özel veya kişisel belgeleri depoya
 eklemeden önce kontrol et.
@@ -139,8 +152,8 @@ internet gerektirir.
 
 ## Sıradaki hedef
 
-Model ve eşik ayarlarını tek yapılandırma modülünde toplamak; boş `.env.example`
-dosyasını kullanılabilir ayarlarla tamamlamak.
+README'yi hızlı başlangıç ve öğrenme günlüğü olarak düzenlemek; mimari diyagram,
+ekran görüntüleri ve final demo/sunum materyallerini hazırlamak.
 
 ## RAG değerlendirmesi
 

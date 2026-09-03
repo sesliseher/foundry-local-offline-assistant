@@ -14,28 +14,31 @@ from offline_assistant.rag import (
     select_context, source_lines, source_score_margin,
 )
 from offline_assistant.retrieval import load_index, search_chunks
+from offline_assistant.config import Settings
 
 
 def main() -> int:
+    settings = Settings.load(PROJECT_ROOT)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("query", help="Belgeler kullanılarak cevaplanacak soru.")
     parser.add_argument("--top-k", type=int, default=3)
     parser.add_argument(
-        "--min-score", type=float, default=0.35,
-        help="Sohbet modelini çağırmak için gereken en iyi skor; varsayılan 0.35.",
+        "--min-score", type=float, default=settings.min_score,
+        help="Sohbet modelini çağırmak için gereken en iyi skor.",
     )
     parser.add_argument(
-        "--min-source-margin", type=float, default=0.02,
-        help="En iyi kaynak ile rakip kaynak arasında gereken fark; varsayılan 0.02.",
+        "--min-source-margin", type=float, default=settings.min_source_margin,
+        help="En iyi kaynak ile rakip kaynak arasında gereken fark.",
     )
     parser.add_argument(
-        "--max-score-drop", type=float, default=0.15,
-        help="Bağlamın en iyi sonuçtan en fazla skor farkı; varsayılan 0.15.",
+        "--max-score-drop", type=float, default=settings.max_score_drop,
+        help="Bağlamın en iyi sonuçtan en fazla skor farkı.",
     )
-    parser.add_argument("--chat-model", default="qwen2.5-1.5b")
-    parser.add_argument("--max-tokens", type=int, default=256)
-    parser.add_argument("--db", type=Path, default=PROJECT_ROOT / "data" / "database" / "assistant.db")
-    parser.add_argument("--model-cache-dir", type=Path)
+    parser.add_argument("--chat-model", default=settings.chat_model)
+    parser.add_argument("--max-tokens", type=int, default=settings.max_tokens)
+    parser.add_argument("--db", type=Path, default=settings.database)
+    parser.add_argument("--model-cache-dir", type=Path, default=settings.model_cache_dir)
+    parser.add_argument("--app-data-dir", type=Path, default=settings.app_data_dir, help=argparse.SUPPRESS)
     args = parser.parse_args()
     question = args.query.strip()
     if not question:
@@ -58,7 +61,7 @@ def main() -> int:
     try:
         metadata, chunks = load_index(args.db)
         from foundry_local_sdk import Configuration, FoundryLocalManager
-        app_data = PROJECT_ROOT / "data" / "foundry"
+        app_data = args.app_data_dir
         cache = args.model_cache_dir.expanduser().resolve() if args.model_cache_dir else app_data / "cache" / "models"
         print(f"İndeks: {len(chunks)} parça | Embedding modeli: {metadata.model_id}")
         print("SDK başlatılıyor; katalog sorgusu internet gerektirebilir.", flush=True)
