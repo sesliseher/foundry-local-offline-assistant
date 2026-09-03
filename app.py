@@ -1,6 +1,7 @@
 """Streamlit kullanıcı arayüzü."""
 
 from pathlib import Path
+import re
 import sys
 
 import streamlit as st
@@ -10,6 +11,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from offline_assistant.service import AnswerResult, LocalRAGService
+from offline_assistant.health import check_local_health
+from offline_assistant.indexing import run_ingestion
 
 
 st.set_page_config(page_title="Yerel Belge Asistanı", page_icon="📚", layout="centered")
@@ -34,7 +37,7 @@ def show_response(result: AnswerResult) -> None:
     if not result.used_chat_model:
         st.info("Benzerlik eşiği aşılmadığı için sohbet modeli çağrılmadı.")
         return
-    with st.expander(f"Kullanılan kaynaklar ({len(result.sources)})", expanded=True):
+    with st.expander(f"Kullanılan kaynaklar ({len(result.sources)})", expanded=False):
         for label, source in zip(result.source_labels, result.sources):
             st.markdown(f"**{label}**")
             st.write(source.text)
@@ -49,6 +52,49 @@ with st.sidebar:
     database_text = st.text_input(
         "SQLite indeksi", value=str(PROJECT_ROOT / "data" / "database" / "assistant.db")
     )
+    source_dir_text = st.text_input("Kaynak belge klasörü", value=str(PROJECT_ROOT / "data" / "raw"))
+    max_chars = st.slider("Parça boyutu (karakter)", 200, 1200, 600, 50)
+
+    st.subheader("Sistem durumu")
+    health_items = check_local_health(
+        Path(database_text), PROJECT_ROOT / "data" / "foundry" / "cache" / "models",
+        "qwen2.5-1.5b",
+    )
+    for health_item in health_items:
+        icon = "✅" if health_item.ok else "❌"
+        st.caption(f"{icon} **{health_item.name}:** {health_item.detail}")
+
+    if st.button("İndeksi oluştur / yenile", use_container_width=True, type="primary"):
+        progress = st.progress(0, text="Belgeler hazırlanıyor…")
+        with st.status("İndeksleme çalışıyor…", expanded=True) as status:
+            def show_index_line(line: str) -> None:
+                match = re.search(r"Embedding üretildi: (\d+)/(\d+)", line)
+                if match:
+                    done, total = map(int, match.groups())
+                    progress.progress(done / total, text=f"Embedding: {done}/{total}")
+                if line.startswith(("Toplam:", "Embedding modeli:", "SQLite'a kaydedildi:")):
+                    status.write(line)
+
+            try:
+                code, output = run_ingestion(
+                    Path(sys.executable), PROJECT_ROOT / "scripts" / "ingest_documents.py",
+                    PROJECT_ROOT, Path(source_dir_text), Path(database_text), max_chars,
+                    show_index_line,
+                )
+                if code == 0:
+                    progress.progress(1.0, text="İndeks hazır")
+                    status.update(label="İndeksleme tamamlandı", state="complete", expanded=False)
+                    st.session_state.index_notice = "İndeks başarıyla yenilendi."
+                else:
+                    status.update(label="İndeksleme başarısız", state="error", expanded=True)
+                    st.error(output[-1] if output else "İndeksleme işlemi hata verdi.")
+            except Exception as exc:
+                status.update(label="İndeksleme başarısız", state="error", expanded=True)
+                st.error(str(exc))
+
+    if notice := st.session_state.pop("index_notice", None):
+        st.success(notice)
+    st.divider()
     top_k = st.slider("Aranacak parça sayısı", 1, 10, 3)
     min_score = st.slider("Minimum benzerlik", -1.0, 1.0, 0.35, 0.01)
     min_source_margin = st.slider("Minimum kaynak farkı", 0.0, 1.0, 0.02, 0.01)

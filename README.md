@@ -139,8 +139,8 @@ internet gerektirir.
 
 ## Sıradaki hedef
 
-Streamlit arayüzüne indeks/model sağlık durumunu ve arayüzden indeks yenileme
-işlemini eklemek.
+Model ve eşik ayarlarını tek yapılandırma modülünde toplamak; boş `.env.example`
+dosyasını kullanılabilir ayarlarla tamamlamak.
 
 ## RAG değerlendirmesi
 
@@ -527,6 +527,18 @@ değiştirilebilir. “Sohbet geçmişini temizle” yalnızca mevcut tarayıcı
 ekran geçmişini temizler; kaynak belgeleri, SQLite veritabanını veya modelleri
 silmez. Ayarlar değiştirildikten sonra yeni sorular yeni değerleri kullanır;
 eski cevaplar üretildikleri ayarlarla ekranda kalır.
+
+Kenar çubuğundaki **Sistem durumu** alanı, ağ veya SDK kullanmadan indeksin belge,
+parça, vektör ve son yenilenme bilgisini; embedding ve sohbet modeli dosyalarının
+hazır olup olmadığını gösterir. **İndeksi oluştur / yenile** düğmesi seçilen kaynak
+klasöründeki TXT, PDF ve DOCX belgelerini işler. Model ve SQLite adımları ayrı bir
+süreçte çalışır; tamamlanan embedding sayısı ilerleme çubuğunda görünür. Başarılı
+yenilemeden sonraki sorular yeni indeksi kullanır. İndeksleme sürerken Streamlit
+aynı oturumda ikinci işlem başlatmaz.
+
+Kaynak metinleri cevap altında varsayılan olarak kapalı bir bölümde gösterilir.
+Ayar değişiklikleri geçmiş cevapları yeniden üretmez; yalnız sonraki sorular yeni
+ayarları kullanır.
 
 RAG servis mantığı `src/offline_assistant/service.py` içindedir; Streamlit'e bağlı
 değildir. Servis her soruda SQLite indeksini yeniden okur, böylece uygulama açıkken

@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 import json
 from pathlib import Path
+from datetime import datetime
 
 from .retrieval import load_index
 
@@ -25,7 +26,12 @@ def check_local_health(database: Path, model_cache: Path, chat_alias: str) -> li
     items = []
     try:
         metadata, chunks = load_index(database)
-        items.append(HealthItem("SQLite indeksi", True, f"{len(chunks)} parça, {metadata.dimension} boyut"))
+        document_count = len({chunk.source for chunk in chunks})
+        updated = datetime.fromtimestamp(database.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+        items.append(HealthItem(
+            "SQLite indeksi", True,
+            f"{document_count} belge, {len(chunks)} parça, {metadata.dimension} boyut · {updated}",
+        ))
         embedding_id = metadata.model_id
     except Exception as exc:
         items.append(HealthItem("SQLite indeksi", False, str(exc)))
