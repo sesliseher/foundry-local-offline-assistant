@@ -6,7 +6,59 @@ RAG (Retrieval-Augmented Generation) ile ilgili belge parçalarını bulma ve SQ
 ile verileri yerel olarak saklama yaklaşımı kullanılacaktır.
 
 Hedef, gerekli modeller ve bağımlılıklar ilk kez indirildikten sonra uygulamanın
-internet bağlantısı olmadan çalışabilmesidir. Çevrimdışı çalışma henüz test edilmedi.
+internet bağlantısı olmadan çalışabilmesidir. Yerel model ve indeks hazırlığı
+sonrasında ağ erişimi olmayan bir proxy ile uçtan uca akış doğrulandı.
+
+## Hızlı başlangıç
+
+Windows PowerShell'de proje kökünden aşağıdaki sırayı izle:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item .env.example .env
+.\.venv\Scripts\python.exe -X utf8 scripts\hello_model.py --download
+.\.venv\Scripts\python.exe -X utf8 scripts\embedding_demo.py --download
+.\.venv\Scripts\python.exe -X utf8 scripts\health_check.py
+.\.venv\Scripts\python.exe -X utf8 scripts\ingest_documents.py --save
+.\.venv\Scripts\python.exe -X utf8 -m streamlit run app.py
+```
+
+İlk iki model komutu internet bağlantısı ve yaklaşık 2,4 GB boş alan ister.
+Sonraki çalıştırmalarda modeller önbellekten kullanılır. Uygulama varsayılan olarak
+`http://localhost:8501` adresinde açılır.
+
+## Mimari
+
+```mermaid
+flowchart LR
+    A[TXT / PDF / DOCX] --> B[Metin çıkarma ve parçalama]
+    B --> C[Qwen3 embedding]
+    C --> D[(SQLite vektör indeksi)]
+    Q[Kullanıcı sorusu] --> E[Soru embedding'i]
+    E --> F[Benzerlik araması]
+    D --> F
+    F --> G[Kaynak parçaları]
+    G --> H[Qwen2.5 1.5B yerel sohbet]
+    Q --> H
+    H --> I[Cevap, kaynak ve sayfa bilgisi]
+```
+
+Tüm çıkarım yerel Foundry Local modelleriyle yapılır. PDF sayfası ve belge türü
+parça meta verisinde korunur; düşük güvenli aramalar güvenli geri dönüş üretir.
+
+## Demo
+
+![Streamlit ana ekranı](docs/screenshots/streamlit-home.png)
+
+Sunum sırasında şu dört senaryo kullanılabilir:
+
+1. **Cevaplanabilir:** “Bilgisayar laboratuvarı hafta içi hangi saatlerde açıktır?”
+2. **Kaynak gösterimi:** DOCX kaynak adını ve ilgili metin parçasını aç.
+3. **Yanıtsız:** “Kampüs servis otobüsünün güzergâhı nedir?” sorusunda güvenli geri dönüşü göster.
+4. **Çevrimdışı:** `health_check.py` çıktısını doğrula, ağı kapat ve aynı soruyu yeniden çalıştır.
+
+Final sunumu: [docs/Foundry_Local_Final_Sunum.pptx](docs/Foundry_Local_Final_Sunum.pptx)
 
 ## Mevcut durum
 
@@ -152,8 +204,8 @@ internet gerektirir.
 
 ## Sıradaki hedef
 
-README'yi hızlı başlangıç ve öğrenme günlüğü olarak düzenlemek; mimari diyagram,
-ekran görüntüleri ve final demo/sunum materyallerini hazırlamak.
+Depoyu GitHub'a göndermek, boş bir klasöre klonlayarak temiz kurulum denemesi
+yapmak ve fiziksel ağ kapalı son demoyu kaydetmek.
 
 ## RAG değerlendirmesi
 
@@ -195,6 +247,16 @@ giriş reddedildi. Beş belge ve 30 vakalık son kümede doğru kaynak bütün
 cevaplanabilir sorularda ilk üç sonuç içindedir. Bu sonuç yalnız güvenli örnek
 veri kümesine aittir.
 
+| Ölçüm | Sonuç |
+| --- | ---: |
+| Hit@1 | %94,44 |
+| Hit@3 | %100 |
+| MRR | %97,22 |
+| Cevaplanabilir kabul | %100 |
+| Yanıtsız/belirsiz ret | %100 |
+| Yönlendirme doğruluğu | %100 |
+| Geçersiz giriş ret | %100 |
+
 `qwen2.5-0.5b` ile en iyi tam akış denemesinde cevapların ortalama beklenen terim
 kapsaması %41,67 oldu. `qwen2.5-1.5b` ile 27 vakalık karşılaştırmada 15
 cevaplanabilir sorunun ortalama terim kapsaması %97,78'e çıktı; bu nedenle 1.5B
@@ -208,7 +270,12 @@ metin eşleştirme ölçüsüdür; anlamsal doğruluğun insan değerlendirmesin
 tutmaz. Aynı makinedeki retrieval süresi ortalama 1,26 saniye, p95 1,88 saniyeydi;
 model/katalog ilk açılışı bu sürelere dahil değildir.
 
-## İlk yerel model cevabı
+## Öğrenme günlüğü
+
+Aşağıdaki bölümler, projenin ilk model denemesinden kullanıcı arayüzüne kadar
+nasıl geliştirildiğini ve her aşamada neyin doğrulandığını kaydeder.
+
+### İlk yerel model cevabı
 
 İlk denemede küçük `qwen2.5-0.5b` sohbet modeli kullanılır. Proje kökünde:
 
@@ -257,7 +324,7 @@ SDK/katalog başlangıcı bu sürelerin dışındadır; kısıtlı ağda yeniden
 denemesinde katalog beklemesi gözlendi. Tüm bilgisayarın interneti kapatılarak
 uçtan uca çevrimdışı çalışma testi henüz yapılmadı.
 
-## Embedding ve benzerlik denemesi
+### Embedding ve benzerlik denemesi
 
 `scripts/embedding_demo.py`, kütüphane saatleri, yemekhane ve ders kaydı hakkında
 üç sabit Türkçe cümle kullanır. Cümleleri ve soruyu aynı yerel
@@ -310,7 +377,7 @@ Bunlar üç örnek üzerindeki sonuçlardır; genel arama kalitesini ölçmez ve
 bir benzerlik eşiği belirlemek için yeterli değildir. Süreye indirme, SDK
 başlangıcı, model yükleme ve soru embedding'leri dahil değildir.
 
-## TXT, PDF ve DOCX belgelerini okuma ve parçalama
+### TXT, PDF ve DOCX belgelerini okuma ve parçalama
 
 `src/offline_assistant/documents.py`, TXT, metin tabanlı PDF ve DOCX dosyalarını
 okur; `source`, `file_type`, `page_number`, `chunk_number` ve `text` alanlarını
@@ -365,7 +432,7 @@ Belge okuma/parçalama ve önceki embedding yardımcıları dahil toplam 18 test
 .\.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider
 ```
 
-## Embedding'leri SQLite'a kaydetme
+### Embedding'leri SQLite'a kaydetme
 
 Mevcut embedding modeli indirilmiş olduğundan doğrudan çalıştırabilirsin:
 
@@ -422,7 +489,7 @@ geçersiz vektörler, kaynak klasörü koruması ve SQL hatasında geri alma dah
 o aşamadaki toplam 26 test geçti. Arama katmanı eklendikten sonra bütün test
 paketi yeniden çalıştırıldı; Streamlit katmanı tamamlandığında toplam 52 test geçti.
 
-## SQLite indeksinde semantik arama
+### SQLite indeksinde semantik arama
 
 `scripts/search_documents.py`, soruyu indekste kayıtlı **aynı tam model
 varyantıyla** embedding'e dönüştürür. SQLite'taki üç parçayı salt okunur olarak
@@ -466,7 +533,7 @@ Arama katmanının testleri sonuç sıralamasını, eşit skorların kararlılı
 `top-k` sınırlarını, eksik veritabanını, geçersiz sorgu vektörlerini ve bozuk
 embedding kayıtlarının reddedilmesini kapsar.
 
-## Yerel RAG ile kaynaklı cevap üretme
+### Yerel RAG ile kaynaklı cevap üretme
 
 `scripts/answer_documents.py` bütün hattı çalıştırır: sorunun embedding'ini
 oluşturur, SQLite'tan en ilgili üç parçayı bulur, yeterli bağlam varsa bunları
@@ -514,7 +581,7 @@ Doğrulamalar:
 - İstem oluşturma, belge içi talimatların veri olarak kaçışlanması, eşik sınırı,
   kaynak listesi ve kaynak etiketi denetimi dahil testler eklendi.
 
-## Streamlit kullanıcı arayüzü
+### Streamlit kullanıcı arayüzü
 
 Arayüzü proje kökünde başlat:
 
