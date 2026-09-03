@@ -6,8 +6,8 @@ import threading
 from time import perf_counter
 
 from .rag import (
-    FALLBACK_ANSWER, build_messages, citation_warnings, has_sufficient_context,
-    select_context, source_lines,
+    FALLBACK_ANSWER, build_messages, citation_warnings, ensure_citation, has_sufficient_context,
+    select_context, source_lines, source_score_margin,
 )
 from .retrieval import SearchResult, load_index, search_chunks
 
@@ -19,9 +19,11 @@ class AnswerResult:
     source_labels: list[str]
     warnings: list[str]
     top_score: float
+    source_margin: float
     retrieval_seconds: float
     generation_seconds: float | None
     used_chat_model: bool
+    citation_added_by_app: bool
 
 
 class LocalRAGService:
@@ -48,6 +50,7 @@ class LocalRAGService:
         database: Path,
         top_k: int = 3,
         min_score: float = 0.35,
+        min_source_margin: float = 0.05,
         max_score_drop: float = 0.15,
         chat_model_alias: str = "qwen2.5-0.5b",
         max_tokens: int = 256,
@@ -82,10 +85,11 @@ class LocalRAGService:
                 if embedding_loaded:
                     embedding_model.unload()
 
-            if not has_sufficient_context(results, min_score):
+            margin = source_score_margin(results)
+            if not has_sufficient_context(results, min_score, min_source_margin):
                 return AnswerResult(
                     FALLBACK_ANSWER, [], [], [], results[0].score,
-                    retrieval_seconds, None, False,
+                    margin, retrieval_seconds, None, False, False,
                 )
 
             context = select_context(results, min_score, max_score_drop)
@@ -106,7 +110,8 @@ class LocalRAGService:
                 generation_seconds = perf_counter() - start
                 if not completion.choices or not (completion.choices[0].message.content or "").strip():
                     raise RuntimeError("Sohbet modeli boş cevap döndürdü.")
-                answer = completion.choices[0].message.content.strip()
+                model_answer = completion.choices[0].message.content.strip()
+                answer, citation_added = ensure_citation(model_answer, len(context))
                 chat_model.unload()
                 chat_loaded = False
             finally:
@@ -119,7 +124,9 @@ class LocalRAGService:
                 source_labels=source_lines(context),
                 warnings=citation_warnings(answer, len(context)),
                 top_score=results[0].score,
+                source_margin=margin,
                 retrieval_seconds=retrieval_seconds,
                 generation_seconds=generation_seconds,
                 used_chat_model=True,
+                citation_added_by_app=citation_added,
             )

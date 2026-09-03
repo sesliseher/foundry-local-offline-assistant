@@ -25,10 +25,12 @@ def show_response(result: AnswerResult) -> None:
     if result.warnings:
         for warning in result.warnings:
             st.warning(warning)
+    if result.citation_added_by_app:
+        st.caption("Kaynak etiketi doğrulanan retrieval sonucundan uygulama tarafından eklendi.")
     timing = f"Arama: {result.retrieval_seconds:.2f} sn"
     if result.generation_seconds is not None:
         timing += f" · Cevap: {result.generation_seconds:.2f} sn"
-    st.caption(f"En iyi skor: {result.top_score:.4f} · {timing}")
+    st.caption(f"En iyi skor: {result.top_score:.4f} · Kaynak farkı: {result.source_margin:.4f} · {timing}")
     if not result.used_chat_model:
         st.info("Benzerlik eşiği aşılmadığı için sohbet modeli çağrılmadı.")
         return
@@ -49,6 +51,7 @@ with st.sidebar:
     )
     top_k = st.slider("Aranacak parça sayısı", 1, 10, 3)
     min_score = st.slider("Minimum benzerlik", -1.0, 1.0, 0.35, 0.01)
+    min_source_margin = st.slider("Minimum kaynak farkı", 0.0, 1.0, 0.05, 0.01)
     max_score_drop = st.slider("En iyi skordan izin verilen fark", 0.0, 1.0, 0.15, 0.01)
     max_tokens = st.slider("En fazla cevap tokenı", 32, 512, 256, 16)
     chat_model = st.text_input("Sohbet modeli", value="qwen2.5-0.5b")
@@ -80,6 +83,7 @@ if question:
                     database=Path(database_text),
                     top_k=top_k,
                     min_score=min_score,
+                    min_source_margin=min_source_margin,
                     max_score_drop=max_score_drop,
                     chat_model_alias=chat_model.strip(),
                     max_tokens=max_tokens,

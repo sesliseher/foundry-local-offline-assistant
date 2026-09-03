@@ -78,9 +78,10 @@ def test_service_runs_retrieval_then_grounded_chat(tmp_path):
     assert result.source_labels[0].startswith("[K1] kutuphane.txt")
     assert result.warnings == []
     assert result.used_chat_model
+    assert not result.citation_added_by_app
     assert embedding_model.load_count == embedding_model.unload_count == 1
     assert chat_model.load_count == chat_model.unload_count == 1
-    assert "Kütüphane saat 18.00'de kapanır." in chat_client.messages[0]["content"]
+    assert any("Kütüphane saat 18.00'de kapanır." in message["content"] for message in chat_client.messages)
 
 
 def test_low_score_skips_chat_model(tmp_path):
@@ -88,6 +89,7 @@ def test_low_score_skips_chat_model(tmp_path):
     result = service.answer("İlgisiz soru", database, min_score=0.9)
     assert result.answer == "Bu bilgi mevcut belgelerde bulunamadı."
     assert not result.used_chat_model
+    assert not result.citation_added_by_app
     assert result.sources == []
     assert embedding_model.load_count == embedding_model.unload_count == 1
     assert chat_model.load_count == chat_model.unload_count == 0

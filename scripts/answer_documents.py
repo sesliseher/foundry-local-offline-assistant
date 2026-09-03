@@ -10,7 +10,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from offline_assistant.rag import (
-    FALLBACK_ANSWER, build_messages, citation_warnings, has_sufficient_context, select_context, source_lines,
+    FALLBACK_ANSWER, build_messages, citation_warnings, ensure_citation, has_sufficient_context,
+    select_context, source_lines, source_score_margin,
 )
 from offline_assistant.retrieval import load_index, search_chunks
 
@@ -22,6 +23,10 @@ def main() -> int:
     parser.add_argument(
         "--min-score", type=float, default=0.35,
         help="Sohbet modelini çağırmak için gereken en iyi skor; varsayılan 0.35.",
+    )
+    parser.add_argument(
+        "--min-source-margin", type=float, default=0.05,
+        help="En iyi kaynak ile rakip kaynak arasında gereken fark; varsayılan 0.05.",
     )
     parser.add_argument(
         "--max-score-drop", type=float, default=0.15,
@@ -41,6 +46,8 @@ def main() -> int:
         parser.error("--min-score -1 ile 1 arasında olmalıdır.")
     if not 0 <= args.max_score_drop <= 2:
         parser.error("--max-score-drop 0 ile 2 arasında olmalıdır.")
+    if not 0 <= args.min_source_margin <= 2:
+        parser.error("--min-source-margin 0 ile 2 arasında olmalıdır.")
     if args.max_tokens < 1:
         parser.error("--max-tokens sıfırdan büyük olmalıdır.")
 
@@ -74,9 +81,13 @@ def main() -> int:
         embedding_loaded = False
         retrieval_elapsed = perf_counter() - retrieval_start
 
-        print(f"En iyi benzerlik: {results[0].score:.4f} | Eşik: {args.min_score:.4f}")
+        margin = source_score_margin(results)
+        print(
+            f"En iyi benzerlik: {results[0].score:.4f} | Eşik: {args.min_score:.4f} | "
+            f"Kaynak farkı: {margin:.4f}"
+        )
         print(f"Arama süresi: {retrieval_elapsed:.2f} saniye")
-        if not has_sufficient_context(results, args.min_score):
+        if not has_sufficient_context(results, args.min_score, args.min_source_margin):
             print(f"\nCevap: {FALLBACK_ANSWER}")
             print("\nKaynaklar: Eşik üzerinde bağlam bulunamadı; sohbet modeli çağrılmadı.")
             return 0
@@ -100,10 +111,13 @@ def main() -> int:
         generation_elapsed = perf_counter() - generation_start
         if not completion.choices or not (completion.choices[0].message.content or "").strip():
             raise RuntimeError("Sohbet modeli boş cevap döndürdü.")
-        answer = completion.choices[0].message.content.strip()
+        model_answer = completion.choices[0].message.content.strip()
+        answer, citation_added = ensure_citation(model_answer, len(context_results))
         chat_model.unload()
         chat_loaded = False
         print(f"\nCevap: {answer}")
+        if citation_added:
+            print("Kaynak etiketi doğrulanmış ilk retrieval sonucundan uygulama tarafından eklendi.")
         warnings = citation_warnings(answer, len(context_results))
         for warning in warnings:
             print(f"Kaynak etiketi uyarısı: {warning}")

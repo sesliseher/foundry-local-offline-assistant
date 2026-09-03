@@ -14,7 +14,7 @@ internet bağlantısı olmadan çalışabilmesidir. Çevrimdışı çalışma he
 - Python 3.12 sanal ortamı ve `requirements.txt` bağımlılıkları hazırlandı.
 - Git dışlama kuralları eklendi.
 - Model listeleme betiği hazırlandı; katalog ve model önbelleği durumunu gösterir.
-- Streamlit kullanıcı arayüzü ve 18 soruluk tekrarlanabilir değerlendirme akışı hazırdır.
+- Streamlit kullanıcı arayüzü ve 27 vakalık tekrarlanabilir değerlendirme akışı hazırdır.
 - TXT belge okuma ve kaynak bilgili parçalama hazır; üç örnek belge 3 parçaya ayrıldı.
 - Belge parçalarının embedding'leri SQLite'a kaydediliyor; tekrar kayıtta kopya oluşmuyor.
 - Soru embedding'i ile SQLite'taki en ilgili parçaları bulan arama komutu hazırlandı.
@@ -108,15 +108,16 @@ yolunu verebilirsin. Gösterilen indirme durumu yalnızca seçilen önbellek iç
 
 ## Sıradaki hedef
 
-Değerlendirmede görülen kapsam dışı soru kabulünü ve küçük sohbet modelinin düşük
-cevap/kaynak kalitesini iyileştirmek; ardından daha geniş ve gerçekçi bir belge
-kümesiyle ölçümü tekrarlamak.
+Küçük sohbet modelinin düşük cevap kalitesini daha güçlü bir yerel modelle
+karşılaştırmak; ardından daha geniş ve gerçekçi bir belge kümesiyle ölçümü
+tekrarlamak ve çevrimdışı soğuk başlangıcı doğrulamak.
 
 ## RAG değerlendirmesi
 
-`evaluation/questions.json`, örnek belgelerden cevaplanabilen 12 soru ile bu
-belgelerde cevabı bulunmayan 6 soruyu içerir. Her cevaplanabilir kayıt beklenen
-kaynak dosyasını ve cevapta aranacak terim gruplarını belirtir. Veri kümesi Git'te
+`evaluation/questions.json`; 15 cevaplanabilir, 9 yanıtsız veya belirsiz ve 3
+boş/geçersiz giriş vakası içerir. Üç cevaplanabilir soru birden fazla bilginin
+birleştirilmesini gerektirir. Her kayıt soru türünü ve örnek cevabı; cevaplanabilir
+kayıtlar ayrıca beklenen kaynak ile cevap terimlerini belirtir. Veri kümesi Git'te
 tutulur; zaman damgalı JSON ve CSV raporları `evaluation/results/` altında üretilir
 ve Git'e eklenmez.
 
@@ -134,21 +135,27 @@ Yerel sohbet cevaplarını, beklenen terimleri ve kaynak etiketi kullanımını 
 ```
 
 `--cases`, `--db`, `--output-dir`, `--top-k`, `--min-score`,
-`--max-score-drop`, `--chat-model` ve `--max-tokens` seçenekleri kullanılabilir.
+`--min-source-margin`, `--max-score-drop`, `--chat-model` ve `--max-tokens`
+seçenekleri kullanılabilir.
 Betik indeksin oluşturulduğu tam embedding modelini kullanır; modelleri otomatik
 indirmez. Ölçüm setinde hem cevaplanabilir hem yanıtsız soru olması gerekir.
 
 2 Eylül 2026 başlangıç ölçümünde doğru kaynak 12 sorunun tamamında ilk sırada
-bulundu (`hit@1`, `hit@3` ve MRR: 1,00). Varsayılan 0,35 eşikle 12 cevaplanabilir
-sorunun tamamı kabul edildi ve 6 kapsam dışı sorunun 5'i reddedildi; yönlendirme
-doğruluğu %94,44 oldu. “Kampüs servis otobüsünün güzergâhı” sorusu 0,3687 ile
-yanlış kabul edildi. En düşük geçerli soru 0,3644 aldığı için yalnız eşiği
-yükseltmek bu küçük sette iki sorunu birden çözmüyor.
+bulundu (`hit@1`, `hit@3` ve MRR: 1,00), ancak 6 kapsam dışı sorunun biri yanlış
+kabul edildi. 3 Eylül'de en iyi sonuç ile farklı bir kaynaktaki en iyi sonuç
+arasına varsayılan 0,05 güven farkı eklendi. Sonraki ölçümde 12 cevaplanabilir
+sorunun tamamı kabul edildi, 6 kapsam dışı sorunun tamamı reddedildi ve
+yönlendirme doğruluğu %100 oldu. Küme 27 vakaya genişletildikten sonra 15/15
+cevaplanabilir soru kabul edildi, 9/9 yanıtsız veya belirsiz soru ile 3/3 geçersiz
+giriş reddedildi; doğru kaynak yine 15/15 soruda ilk sıradaydı. Bu sonuç yalnız
+küçük örnek veri kümesine aittir.
 
-`qwen2.5-0.5b` ile tam akış ölçümünde cevapların ortalama beklenen terim kapsaması
-%36,11 oldu ve model 13 cevabın hiçbirinde istenen kaynak etiketini üretmedi.
-Bu sonuç retrieval katmanının örnek sette güçlü, küçük sohbet modelinin cevap ve
-kaynak uyumunun ise geliştirilmesi gerektiğini gösterir. Terim kapsaması basit
+`qwen2.5-0.5b` ile en iyi tam akış denemesinde cevapların ortalama beklenen terim
+kapsaması %41,67 oldu ve model istenen kaynak etiketini üretmedi. Eksik etiket
+artık uygulama tarafından doğrulanmış ilk retrieval kaynağından eklenir ve raporda
+`model_citation_rate` ile `citation_repair_rate` ayrı gösterilir. Bu sonuç retrieval
+katmanının örnek sette güçlü, küçük sohbet modelinin cevap kalitesinin ise hâlâ
+geliştirilmesi gerektiğini gösterir. Terim kapsaması basit
 metin eşleştirme ölçüsüdür; anlamsal doğruluğun insan değerlendirmesinin yerini
 tutmaz. Aynı makinedeki retrieval süresi ortalama 1,26 saniye, p95 1,88 saniyeydi;
 model/katalog ilk açılışı bu sürelere dahil değildir.
@@ -417,8 +424,8 @@ listesini gösterir.
 .\.venv\Scripts\python.exe -X utf8 scripts\answer_documents.py "Kütüphane hafta içi saat kaçta kapanır?"
 ```
 
-Varsayılanlar `--top-k 3`, `--min-score 0.35`, `--max-score-drop 0.15` ve
-`--max-tokens 256` şeklindedir.
+Varsayılanlar `--top-k 3`, `--min-score 0.35`, `--min-source-margin 0.05`,
+`--max-score-drop 0.15` ve `--max-tokens 256` şeklindedir.
 Sohbet modeli `--chat-model`, veritabanı `--db` ve önbellek
 `--model-cache-dir` ile değiştirilebilir. Her iki modelin önceden indirilmiş
 olması gerekir; komut otomatik model indirmez.
@@ -435,7 +442,8 @@ Kaynak listesi model tarafından yazılmaz; uygulama doğrudan arama sonuçları
 kullanırsa komut görünür uyarı gösterir. Bu denetim cevabın her iddiasının
 gerçekten desteklendiğini kanıtlamaz; önemli cevaplar yine gözden geçirilmelidir.
 
-En iyi skor varsayılan 0,35 eşiğinin altındaysa sohbet modeli çağrılmaz ve
+En iyi skor varsayılan 0,35 eşiğinin altındaysa veya farklı bir kaynakla skor
+farkı varsayılan 0,05'in altındaysa sohbet modeli çağrılmaz ve
 “Bu bilgi mevcut belgelerde bulunamadı.” cevabı döner. Bu eşik küçük örnek veri
 üzerinde seçilmiş başlangıç sezgisidir; doğruluk olasılığı değildir. Kendi belge
 ve değerlendirme sorularınla ölçülüp ayarlanmalıdır. Eşiği düşürmek daha çok

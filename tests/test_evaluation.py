@@ -17,18 +17,24 @@ def _valid_cases():
         {
             "id": "A-01",
             "category": "library",
+            "question_type": "answerable",
             "question": "Kütüphane ne zaman açık?",
+            "valid_input": True,
             "answerable": True,
             "expected_sources": ["library.txt"],
             "expected_term_groups": [["09.00", "09:00"]],
+            "expected_answer": "Kütüphane 09.00'da açılır.",
         },
         {
             "id": "N-01",
             "category": "unknown",
+            "question_type": "unanswerable",
             "question": "Yurt ücreti nedir?",
+            "valid_input": True,
             "answerable": False,
             "expected_sources": [],
             "expected_term_groups": [],
+            "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
         },
     ]
 
@@ -82,16 +88,19 @@ def test_summarize_calculates_retrieval_and_generation_metrics():
             "answerable": True, "expected_source_rank": 1, "accepted": True,
             "retrieval_seconds": 0.1, "term_coverage": 1.0,
             "used_chat_model": True, "citation_warnings": [],
+            "citation_added_by_app": False,
         },
         {
             "answerable": True, "expected_source_rank": 2, "accepted": False,
             "retrieval_seconds": 0.2, "term_coverage": 0.0,
             "used_chat_model": False, "citation_warnings": [],
+            "citation_added_by_app": False,
         },
         {
             "answerable": False, "expected_source_rank": None, "accepted": False,
             "retrieval_seconds": 0.3, "term_coverage": None,
             "used_chat_model": False, "citation_warnings": [],
+            "citation_added_by_app": False,
         },
     ]
 
@@ -104,6 +113,8 @@ def test_summarize_calculates_retrieval_and_generation_metrics():
     assert summary["average_term_coverage"] == 0.5
     assert summary["valid_citation_rate"] == 1
     assert summary["generation_case_count"] == 1
+    assert summary["model_citation_rate"] == 1
+    assert summary["citation_repair_rate"] == 0
     assert summary["p95_retrieval_seconds"] == 0.3
 
 

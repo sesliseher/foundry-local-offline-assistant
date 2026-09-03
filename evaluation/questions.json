@@ -4,96 +4,229 @@
     "category": "library",
     "question": "Kütüphane hafta içi saat kaçta kapanır?",
     "answerable": true,
-    "expected_sources": ["ornek_kutuphane.txt"],
-    "expected_term_groups": [["18.00"]]
+    "expected_sources": [
+      "ornek_kutuphane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "18.00"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Kütüphane hafta içi 18.00'de kapanır.",
+    "valid_input": true
   },
   {
     "id": "LIB-02",
     "category": "library",
     "question": "Kütüphane cumartesi günü hangi saatlerde açıktır?",
     "answerable": true,
-    "expected_sources": ["ornek_kutuphane.txt"],
-    "expected_term_groups": [["10.00"], ["14.00"]]
+    "expected_sources": [
+      "ornek_kutuphane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "10.00"
+      ],
+      [
+        "14.00"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Cumartesi 10.00–14.00 arasında açıktır.",
+    "valid_input": true
   },
   {
     "id": "LIB-03",
     "category": "library",
     "question": "Bir öğrenci aynı anda kaç kitap ödünç alabilir?",
     "answerable": true,
-    "expected_sources": ["ornek_kutuphane.txt"],
-    "expected_term_groups": [["üç", "3"]]
+    "expected_sources": [
+      "ornek_kutuphane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "üç",
+        "3"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Aynı anda üç kitap alınabilir.",
+    "valid_input": true
   },
   {
     "id": "LIB-04",
     "category": "library",
     "question": "Grup çalışma odası nasıl ayırtılır ve en fazla kaç saat kullanılabilir?",
     "answerable": true,
-    "expected_sources": ["ornek_kutuphane.txt"],
-    "expected_term_groups": [["danışma masası"], ["bir gün", "1 gün"], ["iki saat", "2 saat"]]
+    "expected_sources": [
+      "ornek_kutuphane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "danışma masası"
+      ],
+      [
+        "bir gün",
+        "1 gün"
+      ],
+      [
+        "iki saat",
+        "2 saat"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Oda danışma masasından bir gün önce ayrılır ve en fazla iki saat kullanılır.",
+    "valid_input": true
   },
   {
     "id": "CAF-01",
     "category": "cafeteria",
     "question": "Yemekhanede öğle yemeği hangi saatlerde verilir?",
     "answerable": true,
-    "expected_sources": ["ornek_yemekhane.txt"],
-    "expected_term_groups": [["12.00"], ["14.00"]]
+    "expected_sources": [
+      "ornek_yemekhane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "12.00"
+      ],
+      [
+        "14.00"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Öğle yemeği 12.00–14.00 arasında sunulur.",
+    "valid_input": true
   },
   {
     "id": "CAF-02",
     "category": "cafeteria",
     "question": "Hafta sonu yemek hizmeti var mı?",
     "answerable": true,
-    "expected_sources": ["ornek_yemekhane.txt"],
-    "expected_term_groups": [["verilmez", "yok"]]
+    "expected_sources": [
+      "ornek_yemekhane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "verilmez",
+        "yok"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Hafta sonu yemek hizmeti verilmez.",
+    "valid_input": true
   },
   {
     "id": "CAF-03",
     "category": "cafeteria",
     "question": "Vejetaryen yemek isteyen öğrenci ne yapmalıdır?",
     "answerable": true,
-    "expected_sources": ["ornek_yemekhane.txt"],
-    "expected_term_groups": [["servis görevlisi"]]
+    "expected_sources": [
+      "ornek_yemekhane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "servis görevlisi"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Servis görevlisine başvurmalıdır.",
+    "valid_input": true
   },
   {
     "id": "CAF-04",
     "category": "cafeteria",
     "question": "Yemek kartına nasıl bakiye yüklenir?",
     "answerable": true,
-    "expected_sources": ["ornek_yemekhane.txt"],
-    "expected_term_groups": [["öğrenci bilgi sistemi"], ["yemek işlemleri"]]
+    "expected_sources": [
+      "ornek_yemekhane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "öğrenci bilgi sistemi"
+      ],
+      [
+        "yemek işlemleri"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Öğrenci bilgi sistemindeki yemek işlemleri sayfası kullanılır.",
+    "valid_input": true
   },
   {
     "id": "REG-01",
     "category": "registration",
     "question": "Ders kayıtları nereden ve nasıl yapılır?",
     "answerable": true,
-    "expected_sources": ["ornek_ders_kaydi.txt"],
-    "expected_term_groups": [["öğrenci bilgi sistemi"], ["çevrimiçi"]]
+    "expected_sources": [
+      "ornek_ders_kaydi.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "öğrenci bilgi sistemi"
+      ],
+      [
+        "çevrimiçi"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Ders kayıtları öğrenci bilgi sistemi üzerinden çevrimiçi yapılır.",
+    "valid_input": true
   },
   {
     "id": "REG-02",
     "category": "registration",
     "question": "Ders kaydının kesinleşmesi için kimin onayı gerekir?",
     "answerable": true,
-    "expected_sources": ["ornek_ders_kaydi.txt"],
-    "expected_term_groups": [["danışman"], ["onay"]]
+    "expected_sources": [
+      "ornek_ders_kaydi.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "danışman"
+      ],
+      [
+        "onay"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Akademik danışman onayı gerekir.",
+    "valid_input": true
   },
   {
     "id": "REG-03",
     "category": "registration",
     "question": "Kontenjanı dolu bir ders için nereye başvurulur?",
     "answerable": true,
-    "expected_sources": ["ornek_ders_kaydi.txt"],
-    "expected_term_groups": [["bölüm sekreterliği"]]
+    "expected_sources": [
+      "ornek_ders_kaydi.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "bölüm sekreterliği"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Bölüm sekreterliğine başvurulur.",
+    "valid_input": true
   },
   {
     "id": "REG-04",
     "category": "registration",
     "question": "Ekleme bırakma dönemindeki değişiklikleri yeniden kim onaylar?",
     "answerable": true,
-    "expected_sources": ["ornek_ders_kaydi.txt"],
-    "expected_term_groups": [["danışman"]]
+    "expected_sources": [
+      "ornek_ders_kaydi.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "danışman"
+      ]
+    ],
+    "question_type": "answerable",
+    "expected_answer": "Değişiklikleri danışman yeniden onaylar.",
+    "valid_input": true
   },
   {
     "id": "NONE-01",
@@ -101,7 +234,10 @@
     "question": "Öğrenim ücreti ne kadardır?",
     "answerable": false,
     "expected_sources": [],
-    "expected_term_groups": []
+    "expected_term_groups": [],
+    "question_type": "unanswerable",
+    "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
+    "valid_input": true
   },
   {
     "id": "NONE-02",
@@ -109,7 +245,10 @@
     "question": "Öğrenci yurtlarının aylık fiyatı nedir?",
     "answerable": false,
     "expected_sources": [],
-    "expected_term_groups": []
+    "expected_term_groups": [],
+    "question_type": "unanswerable",
+    "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
+    "valid_input": true
   },
   {
     "id": "NONE-03",
@@ -117,7 +256,10 @@
     "question": "Kampüs servis otobüsünün güzergâhı nedir?",
     "answerable": false,
     "expected_sources": [],
-    "expected_term_groups": []
+    "expected_term_groups": [],
+    "question_type": "unanswerable",
+    "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
+    "valid_input": true
   },
   {
     "id": "NONE-04",
@@ -125,7 +267,10 @@
     "question": "Spor salonunun üyelik ücreti ne kadar?",
     "answerable": false,
     "expected_sources": [],
-    "expected_term_groups": []
+    "expected_term_groups": [],
+    "question_type": "unanswerable",
+    "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
+    "valid_input": true
   },
   {
     "id": "NONE-05",
@@ -133,7 +278,10 @@
     "question": "Kampüsün kablosuz ağ şifresi nedir?",
     "answerable": false,
     "expected_sources": [],
-    "expected_term_groups": []
+    "expected_term_groups": [],
+    "question_type": "unanswerable",
+    "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
+    "valid_input": true
   },
   {
     "id": "NONE-06",
@@ -141,6 +289,151 @@
     "question": "Sağlık merkezinde hangi doktorlar çalışıyor?",
     "answerable": false,
     "expected_sources": [],
-    "expected_term_groups": []
+    "expected_term_groups": [],
+    "question_type": "unanswerable",
+    "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
+    "valid_input": true
+  },
+  {
+    "id": "MULTI-01",
+    "category": "library",
+    "question_type": "multi_fact",
+    "question": "Kütüphanenin hem hafta içi hem cumartesi çalışma saatleri nedir?",
+    "answerable": true,
+    "expected_sources": [
+      "ornek_kutuphane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "09.00"
+      ],
+      [
+        "18.00"
+      ],
+      [
+        "10.00"
+      ],
+      [
+        "14.00"
+      ]
+    ],
+    "expected_answer": "Hafta içi 09.00–18.00, cumartesi 10.00–14.00 arasında açıktır.",
+    "valid_input": true
+  },
+  {
+    "id": "MULTI-02",
+    "category": "registration",
+    "question_type": "multi_fact",
+    "question": "Ders kaydını nereden yaparım ve kaydın kesinleşmesi için ne gerekir?",
+    "answerable": true,
+    "expected_sources": [
+      "ornek_ders_kaydi.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "öğrenci bilgi sistemi"
+      ],
+      [
+        "çevrimiçi"
+      ],
+      [
+        "danışman"
+      ],
+      [
+        "onay"
+      ]
+    ],
+    "expected_answer": "Kayıt öğrenci bilgi sisteminden çevrimiçi yapılır ve danışman onayıyla kesinleşir.",
+    "valid_input": true
+  },
+  {
+    "id": "MULTI-03",
+    "category": "cafeteria",
+    "question_type": "multi_fact",
+    "question": "Yemekhanenin öğle saatlerini ve hafta sonu durumunu birlikte açıklar mısın?",
+    "answerable": true,
+    "expected_sources": [
+      "ornek_yemekhane.txt"
+    ],
+    "expected_term_groups": [
+      [
+        "12.00"
+      ],
+      [
+        "14.00"
+      ],
+      [
+        "verilmez",
+        "yok"
+      ]
+    ],
+    "expected_answer": "Öğle yemeği hafta içi 12.00–14.00 arasındadır; hafta sonu hizmet verilmez.",
+    "valid_input": true
+  },
+  {
+    "id": "AMB-01",
+    "category": "library",
+    "question_type": "ambiguous",
+    "question": "Orası cumartesi açık mı?",
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": [],
+    "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
+    "valid_input": true
+  },
+  {
+    "id": "AMB-02",
+    "category": "registration",
+    "question_type": "ambiguous",
+    "question": "Onayı kim veriyor?",
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": [],
+    "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
+    "valid_input": true
+  },
+  {
+    "id": "AMB-03",
+    "category": "cafeteria",
+    "question_type": "ambiguous",
+    "question": "Kartıma nereden yüklerim?",
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": [],
+    "expected_answer": "Bu bilgi mevcut belgelerde bulunamadı.",
+    "valid_input": true
+  },
+  {
+    "id": "INVALID-01",
+    "category": "invalid",
+    "question_type": "invalid",
+    "question": "",
+    "valid_input": false,
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": [],
+    "expected_answer": "Soru boş olamaz."
+  },
+  {
+    "id": "INVALID-02",
+    "category": "invalid",
+    "question_type": "invalid",
+    "question": "   ",
+    "valid_input": false,
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": [],
+    "expected_answer": "Soru boş olamaz."
+  },
+  {
+    "id": "INVALID-03",
+    "category": "invalid",
+    "question_type": "invalid",
+    "question": "\n\t",
+    "valid_input": false,
+    "answerable": false,
+    "expected_sources": [],
+    "expected_term_groups": [],
+    "expected_answer": "Soru boş olamaz."
   }
 ]

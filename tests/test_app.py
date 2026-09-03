@@ -11,4 +11,5 @@ def test_streamlit_initial_screen_renders_without_loading_models():
     assert app.chat_input[0].placeholder == "Belgeler hakkında bir soru sor…"
     assert app.sidebar.slider[0].value == 3
     assert app.sidebar.slider[1].value == 0.35
-    assert app.sidebar.slider[2].value == 0.15
+    assert app.sidebar.slider[2].value == 0.05
+    assert app.sidebar.slider[3].value == 0.15

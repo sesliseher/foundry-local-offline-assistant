@@ -11,10 +11,13 @@ import unicodedata
 class EvaluationCase:
     id: str
     category: str
+    question_type: str
     question: str
+    valid_input: bool
     answerable: bool
     expected_sources: list[str]
     expected_term_groups: list[list[str]]
+    expected_answer: str
 
 
 def load_cases(path: Path) -> list[EvaluationCase]:
@@ -30,13 +33,20 @@ def load_cases(path: Path) -> list[EvaluationCase]:
         try:
             case = EvaluationCase(
                 id=item["id"].strip(), category=item["category"].strip(),
-                question=item["question"].strip(), answerable=item["answerable"],
+                question_type=item["question_type"].strip(),
+                question=item["question"], valid_input=item["valid_input"],
+                answerable=item["answerable"],
                 expected_sources=item["expected_sources"],
                 expected_term_groups=item["expected_term_groups"],
+                expected_answer=item["expected_answer"].strip(),
             )
         except (KeyError, AttributeError, TypeError) as exc:
             raise ValueError(f"Değerlendirme kaydı {index} geçersiz: {exc}") from exc
-        if not case.id or not case.category or not case.question or type(case.answerable) is not bool:
+        if (
+            not case.id or not case.category or not case.question_type
+            or not case.expected_answer or type(case.answerable) is not bool
+            or type(case.valid_input) is not bool or not isinstance(case.question, str)
+        ):
             raise ValueError(f"Değerlendirme kaydı {index} temel alanları geçersiz.")
         if case.id in seen_ids:
             raise ValueError(f"Tekrarlanan değerlendirme kimliği: {case.id}")
@@ -52,7 +62,11 @@ def load_cases(path: Path) -> list[EvaluationCase]:
         ):
             if groups != []:
                 raise ValueError(f"{case.id}: expected_term_groups geçersiz.")
-        if case.answerable and (not case.expected_sources or not groups):
+        if case.valid_input and not case.question.strip():
+            raise ValueError(f"{case.id}: geçerli giriş sorusu boş olamaz.")
+        if not case.valid_input and case.question.strip():
+            raise ValueError(f"{case.id}: geçersiz giriş testi boşluk dışında metin içeremez.")
+        if case.answerable and (not case.valid_input or not case.expected_sources or not groups):
             raise ValueError(f"{case.id}: cevaplanabilir soru kaynak ve beklenen terimler içermelidir.")
         if not case.answerable and (case.expected_sources or groups):
             raise ValueError(f"{case.id}: yanıtsız soru kaynak veya beklenen terim içermemelidir.")
@@ -81,14 +95,17 @@ def expected_source_rank(found_sources: list[str], expected_sources: list[str]) 
 def summarize(rows: list[dict], with_generation: bool) -> dict:
     if not rows:
         raise ValueError("Özetlenecek değerlendirme sonucu yok.")
-    answerable = [row for row in rows if row["answerable"]]
-    unanswerable = [row for row in rows if not row["answerable"]]
+    valid = [row for row in rows if row.get("valid_input", True)]
+    invalid = [row for row in rows if not row.get("valid_input", True)]
+    answerable = [row for row in valid if row["answerable"]]
+    unanswerable = [row for row in valid if not row["answerable"]]
     if not answerable or not unanswerable:
         raise ValueError("Özet için hem cevaplanabilir hem de yanıtsız soru bulunmalıdır.")
-    latencies = sorted(row["retrieval_seconds"] for row in rows)
+    latencies = sorted(row["retrieval_seconds"] for row in valid)
     percentile_index = max(0, math.ceil(len(latencies) * 0.95) - 1)
     summary = {
         "case_count": len(rows),
+        "invalid_input_count": len(invalid),
         "answerable_count": len(answerable),
         "unanswerable_count": len(unanswerable),
         "hit_at_1": sum(row["expected_source_rank"] == 1 for row in answerable) / len(answerable),
@@ -97,13 +114,17 @@ def summarize(rows: list[dict], with_generation: bool) -> dict:
         / len(answerable),
         "answerable_accept_rate": sum(row["accepted"] for row in answerable) / len(answerable),
         "unanswerable_reject_rate": sum(not row["accepted"] for row in unanswerable) / len(unanswerable),
-        "routing_accuracy": sum(row["accepted"] == row["answerable"] for row in rows) / len(rows),
+        "routing_accuracy": sum(row["accepted"] == row["answerable"] for row in valid) / len(valid),
+        "invalid_input_reject_rate": (
+            sum(row.get("input_rejected", False) for row in invalid) / len(invalid) if invalid else None
+        ),
         "average_retrieval_seconds": sum(latencies) / len(latencies),
         "p95_retrieval_seconds": latencies[percentile_index],
     }
     if with_generation:
         scored_answers = [row for row in answerable if row.get("term_coverage") is not None]
         model_answers = [row for row in rows if row.get("used_chat_model")]
+        model_citations = [row for row in model_answers if not row.get("citation_added_by_app")]
         summary.update({
             "average_term_coverage": (
                 sum(row["term_coverage"] for row in scored_answers) / len(scored_answers)
@@ -114,5 +135,10 @@ def summarize(rows: list[dict], with_generation: bool) -> dict:
                 if model_answers else None
             ),
             "generation_case_count": len(model_answers),
+            "model_citation_rate": len(model_citations) / len(model_answers) if model_answers else None,
+            "citation_repair_rate": (
+                sum(bool(row.get("citation_added_by_app")) for row in model_answers) / len(model_answers)
+                if model_answers else None
+            ),
         })
     return summary

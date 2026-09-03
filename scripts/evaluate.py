@@ -16,7 +16,8 @@ from offline_assistant.evaluation import (
     expected_source_rank, load_cases, summarize, term_coverage,
 )
 from offline_assistant.rag import (
-    FALLBACK_ANSWER, build_messages, citation_warnings, has_sufficient_context, select_context,
+    FALLBACK_ANSWER, build_messages, citation_warnings, ensure_citation, has_sufficient_context,
+    select_context, source_score_margin,
 )
 from offline_assistant.retrieval import load_index, search_chunks
 
@@ -53,6 +54,7 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, default=PROJECT_ROOT / "evaluation" / "results")
     parser.add_argument("--top-k", type=int, default=3)
     parser.add_argument("--min-score", type=float, default=0.35)
+    parser.add_argument("--min-source-margin", type=float, default=0.05)
     parser.add_argument("--max-score-drop", type=float, default=0.15)
     parser.add_argument("--with-generation", action="store_true", help="Yerel sohbet cevabını da değerlendir.")
     parser.add_argument("--chat-model", default="qwen2.5-0.5b")
@@ -65,6 +67,8 @@ def main() -> int:
         parser.error("--min-score -1 ile 1 arasında olmalıdır.")
     if not 0 <= args.max_score_drop <= 2:
         parser.error("--max-score-drop 0 ile 2 arasında olmalıdır.")
+    if not 0 <= args.min_source_margin <= 2:
+        parser.error("--min-source-margin 0 ile 2 arasında olmalıdır.")
 
     embedding_model = None
     chat_model = None
@@ -93,6 +97,20 @@ def main() -> int:
         rows = []
         contexts = []
         for index, case in enumerate(cases, start=1):
+            if not case.valid_input:
+                rows.append({
+                    "id": case.id, "category": case.category, "question_type": case.question_type,
+                    "question": case.question, "valid_input": False, "input_rejected": not case.question.strip(),
+                    "answerable": False, "expected_sources": [], "expected_answer": case.expected_answer,
+                    "found_sources": [], "scores": [], "source_margin": None,
+                    "expected_source_rank": None, "accepted": False, "routing_correct": True,
+                    "retrieval_seconds": 0.0, "generated_answer": None, "used_chat_model": False,
+                    "term_coverage": None, "citation_warnings": [], "citation_added_by_app": False,
+                    "generation_seconds": None,
+                })
+                contexts.append([])
+                print(f"[{index:02}/{len(cases)}] {case.id}: OK | geçersiz giriş reddedildi")
+                continue
             start = perf_counter()
             response = embedding_client.generate_embedding(case.question)
             if len(response.data) != 1 or response.data[0].index != 0:
@@ -101,16 +119,22 @@ def main() -> int:
             retrieval_seconds = perf_counter() - start
             found_sources = [result.source for result in results]
             rank = expected_source_rank(found_sources, case.expected_sources) if case.answerable else None
-            accepted = has_sufficient_context(results, args.min_score)
+            margin = source_score_margin(results)
+            accepted = has_sufficient_context(results, args.min_score, args.min_source_margin)
             contexts.append(select_context(results, args.min_score, args.max_score_drop) if accepted else [])
             rows.append({
                 "id": case.id,
                 "category": case.category,
+                "question_type": case.question_type,
                 "question": case.question,
+                "valid_input": True,
+                "input_rejected": False,
                 "answerable": case.answerable,
                 "expected_sources": case.expected_sources,
+                "expected_answer": case.expected_answer,
                 "found_sources": found_sources,
                 "scores": [round(result.score, 6) for result in results],
+                "source_margin": round(margin, 6),
                 "expected_source_rank": rank,
                 "accepted": accepted,
                 "routing_correct": accepted == case.answerable,
@@ -119,6 +143,7 @@ def main() -> int:
                 "used_chat_model": None,
                 "term_coverage": None,
                 "citation_warnings": [],
+                "citation_added_by_app": None,
                 "generation_seconds": None,
             })
             status = "OK" if rows[-1]["routing_correct"] and (not case.answerable or rank is not None) else "KONTROL"
@@ -143,17 +168,20 @@ def main() -> int:
                     row["used_chat_model"] = False
                     row["term_coverage"] = 0.0 if case.answerable else None
                     row["generation_seconds"] = 0.0
+                    row["citation_added_by_app"] = False
                     continue
                 start = perf_counter()
                 completion = client.complete_chat(build_messages(case.question, context))
                 elapsed = perf_counter() - start
                 if not completion.choices or not (completion.choices[0].message.content or "").strip():
                     raise RuntimeError(f"{case.id}: sohbet modeli boş cevap döndürdü.")
-                answer = completion.choices[0].message.content.strip()
+                model_answer = completion.choices[0].message.content.strip()
+                answer, citation_added = ensure_citation(model_answer, len(context))
                 row["generated_answer"] = answer
                 row["used_chat_model"] = True
                 row["term_coverage"] = term_coverage(answer, case.expected_term_groups)
                 row["citation_warnings"] = citation_warnings(answer, len(context))
+                row["citation_added_by_app"] = citation_added
                 row["generation_seconds"] = round(elapsed, 6)
             if chat_loaded:
                 chat_model.unload()
@@ -166,6 +194,7 @@ def main() -> int:
             "chat_model_alias": args.chat_model if args.with_generation else None,
             "top_k": args.top_k,
             "min_score": args.min_score,
+            "min_source_margin": args.min_source_margin,
             "max_score_drop": args.max_score_drop,
             "max_tokens": args.max_tokens if args.with_generation else None,
             "with_generation": args.with_generation,
