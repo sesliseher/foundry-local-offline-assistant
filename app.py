@@ -54,7 +54,7 @@ with st.sidebar:
     min_source_margin = st.slider("Minimum kaynak farkı", 0.0, 1.0, 0.05, 0.01)
     max_score_drop = st.slider("En iyi skordan izin verilen fark", 0.0, 1.0, 0.15, 0.01)
     max_tokens = st.slider("En fazla cevap tokenı", 32, 512, 256, 16)
-    chat_model = st.text_input("Sohbet modeli", value="qwen2.5-0.5b")
+    chat_model = st.text_input("Sohbet modeli", value="qwen2.5-1.5b")
     if st.button("Sohbet geçmişini temizle", use_container_width=True):
         st.session_state.messages = []
         st.rerun()

@@ -151,11 +151,14 @@ giriş reddedildi; doğru kaynak yine 15/15 soruda ilk sıradaydı. Bu sonuç ya
 küçük örnek veri kümesine aittir.
 
 `qwen2.5-0.5b` ile en iyi tam akış denemesinde cevapların ortalama beklenen terim
-kapsaması %41,67 oldu ve model istenen kaynak etiketini üretmedi. Eksik etiket
+kapsaması %41,67 oldu. `qwen2.5-1.5b` ile 27 vakalık karşılaştırmada 15
+cevaplanabilir sorunun ortalama terim kapsaması %97,78'e çıktı; bu nedenle 1.5B
+model varsayılan yapıldı. Katalog boyutu 1822 MB'dır ve CPU üzerinde daha yavaştır.
+Her iki model de RAG koşusunda istenen kaynak etiketini atlayabildi. Eksik etiket
 artık uygulama tarafından doğrulanmış ilk retrieval kaynağından eklenir ve raporda
 `model_citation_rate` ile `citation_repair_rate` ayrı gösterilir. Bu sonuç retrieval
-katmanının örnek sette güçlü, küçük sohbet modelinin cevap kalitesinin ise hâlâ
-geliştirilmesi gerektiğini gösterir. Terim kapsaması basit
+katmanının örnek sette güçlü olduğunu ve model boyutunun cevap kalitesini belirgin
+biçimde etkilediğini gösterir. Terim kapsaması basit
 metin eşleştirme ölçüsüdür; anlamsal doğruluğun insan değerlendirmesinin yerini
 tutmaz. Aynı makinedeki retrieval süresi ortalama 1,26 saniye, p95 1,88 saniyeydi;
 model/katalog ilk açılışı bu sürelere dahil değildir.

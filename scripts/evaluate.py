@@ -57,7 +57,7 @@ def main() -> int:
     parser.add_argument("--min-source-margin", type=float, default=0.05)
     parser.add_argument("--max-score-drop", type=float, default=0.15)
     parser.add_argument("--with-generation", action="store_true", help="Yerel sohbet cevabını da değerlendir.")
-    parser.add_argument("--chat-model", default="qwen2.5-0.5b")
+    parser.add_argument("--chat-model", default="qwen2.5-1.5b")
     parser.add_argument("--max-tokens", type=int, default=128)
     parser.add_argument("--model-cache-dir", type=Path)
     args = parser.parse_args()

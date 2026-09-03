@@ -52,7 +52,7 @@ class LocalRAGService:
         min_score: float = 0.35,
         min_source_margin: float = 0.05,
         max_score_drop: float = 0.15,
-        chat_model_alias: str = "qwen2.5-0.5b",
+        chat_model_alias: str = "qwen2.5-1.5b",
         max_tokens: int = 256,
     ) -> AnswerResult:
         question = question.strip()

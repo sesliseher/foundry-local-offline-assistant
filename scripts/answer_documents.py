@@ -32,7 +32,7 @@ def main() -> int:
         "--max-score-drop", type=float, default=0.15,
         help="Bağlamın en iyi sonuçtan en fazla skor farkı; varsayılan 0.15.",
     )
-    parser.add_argument("--chat-model", default="qwen2.5-0.5b")
+    parser.add_argument("--chat-model", default="qwen2.5-1.5b")
     parser.add_argument("--max-tokens", type=int, default=256)
     parser.add_argument("--db", type=Path, default=PROJECT_ROOT / "data" / "database" / "assistant.db")
     parser.add_argument("--model-cache-dir", type=Path)
