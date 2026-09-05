@@ -60,6 +60,10 @@ Sunum sırasında şu dört senaryo kullanılabilir:
 
 Final sunumu: [docs/Foundry_Local_Final_Sunum.pptx](docs/Foundry_Local_Final_Sunum.pptx)
 
+Türkçe seslendirmeli demo:
+[docs/demo/foundry-local-offline-demo-tr.mp4](docs/demo/foundry-local-offline-demo-tr.mp4)
+([anlatım metni](docs/demo/demo-metni.md))
+
 ## Mevcut durum
 
 - Proje klasör yapısı oluşturuldu.

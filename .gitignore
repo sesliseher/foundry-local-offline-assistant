@@ -33,3 +33,4 @@ data/foundry/
 # Tekrar üretilebilen değerlendirme raporları (soru kümesi takip edilir)
 evaluation/results/
 .deck-build/
+.demo-build/
