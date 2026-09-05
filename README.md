@@ -124,8 +124,8 @@ git status --short
 
 Bu komutlar mevcut sanal ortamı doğrudan kullanır; ortamı etkinleştirmek gerekmez.
 `pip check` paket bağımlılıklarını kontrol eder, modelin çalıştığını doğrulamaz.
-Uygulama henüz çalıştırılabilir durumda olmadığı için uygulama başlatma adımları
-ilgili geliştirme aşamasında eklenecektir.
+Uygulamayı başlatma ve ilk model hazırlığı adımları **Hızlı başlangıç** bölümünde
+verilmiştir.
 
 ## Git ve yerel dosyalar
 
@@ -204,8 +204,8 @@ internet gerektirir.
 
 ## Sıradaki hedef
 
-Depoyu GitHub'a göndermek, boş bir klasöre klonlayarak temiz kurulum denemesi
-yapmak ve fiziksel ağ kapalı son demoyu kaydetmek.
+Fiziksel ağ bağlantısını kapatarak son canlı demoyu yapmak ve sunum akışını
+prova etmek. GitHub yayını ve temiz klasörde kurulum testi tamamlandı.
 
 ## RAG değerlendirmesi
 
@@ -537,7 +537,7 @@ embedding kayıtlarının reddedilmesini kapsar.
 
 `scripts/answer_documents.py` bütün hattı çalıştırır: sorunun embedding'ini
 oluşturur, SQLite'tan en ilgili üç parçayı bulur, yeterli bağlam varsa bunları
-yerel `qwen2.5-0.5b` sohbet modeline verir ve cevabın yanında doğrulanmış kaynak
+yerel `qwen2.5-1.5b` sohbet modeline verir ve cevabın yanında doğrulanmış kaynak
 listesini gösterir.
 
 ```powershell
